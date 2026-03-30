@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>晚餐煮什麼？ Premium Edition</title>
+    <!-- Premium Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animated">
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+        <div class="glow glow-3"></div>
+    </div>
+
+    <div class="app-container">
+        <header class="hero">
+            <div class="hero-icon"><i class="fa-solid fa-fire-burner"></i></div>
+            <h1>晚餐煮什麼？</h1>
+            <p>用冰箱裡的現有食材，快速決定今晚吃什麼</p>
+        </header>
+
+        <main class="content">
+            <section class="input-section glass-panel">
+                <h2><i class="fa-solid fa-lemon title-icon"></i> 1. 你有什麼食材？</h2>
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-magnifying-glass input-icon"></i>
+                        <input type="text" id="ingredient-input" placeholder="例如：雞蛋、高麗菜（按 Enter 加入）">
+                    </div>
+                    <button id="add-ingredient-btn" class="btn primary"><i class="fa-solid fa-plus"></i> 新增</button>
+                </div>
+                <div id="ingredient-tags" class="tags-container"></div>
+            </section>
+
+            <section class="settings-section glass-panel stagger-1">
+                <h2><i class="fa-solid fa-sliders title-icon"></i> 2. 條件設定</h2>
+
+                <div class="setting-group margin-bottom-lg">
+                    <div class="slider-header">
+                        <label for="tolerance-slider">最多可接受缺少幾樣買不到的食材？</label>
+                        <span class="badge"><span id="tolerance-val">1</span> 樣</span>
+                    </div>
+                    <input type="range" class="custom-slider" id="tolerance-slider" min="0" max="3" value="1">
+                    <p class="help-text" id="tolerance-help">願意補買 1 樣</p>
+                </div>
+
+                <div class="setting-group">
+                    <label class="section-label">我的廚具有哪些？</label>
+                    <div class="checkbox-group">
+                        <label class="toggle-btn">
+                            <input type="checkbox" name="appliance" value="快煮鍋">
+                            <span class="toggle-content"><i class="fa-solid fa-bowl-food"></i> 快煮鍋</span>
+                        </label>
+                        <label class="toggle-btn">
+                            <input type="checkbox" name="appliance" value="平底鍋">
+                            <span class="toggle-content"><i class="fa-solid fa-pan-frying"></i> 平底鍋</span>
+                        </label>
+                        <label class="toggle-btn">
+                            <input type="checkbox" name="appliance" value="微波爐">
+                            <span class="toggle-content"><i class="fa-solid fa-microwave"></i> 微波爐</span>
+                        </label>
+                        <label class="toggle-btn">
+                            <input type="checkbox" name="appliance" value="明火瓦斯爐">
+                            <span class="toggle-content"><i class="fa-solid fa-fire"></i> 明火瓦斯爐</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button id="search-btn" class="btn lg action-btn">
+                    <span>幫我推薦菜譜</span>
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </button>
+            </section>
+
+            <section id="results-section" class="results-section hidden">
+                <h2 id="results-title" class="results-header"><i class="fa-solid fa-utensils"></i> 推薦結果</h2>
+                <div id="error-message" class="error-msg glass-panel hidden"></div>
+
+                <div id="fallback-container" class="fallback-card glass-panel hidden">
+                    <div class="fallback-icon"><i class="fa-regular fa-face-frown-open"></i></div>
+                    <h3 id="fallback-title"></h3>
+                    <ul id="fallback-suggestions"></ul>
+                </div>
+
+                <div id="recipes-grid" class="recipes-grid"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+
+</html>

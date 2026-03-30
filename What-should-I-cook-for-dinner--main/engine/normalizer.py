@@ -6,6 +6,11 @@ class DataNormalizer:
         self.synonyms = synonyms
 
     def normalize(self, ingredient: str) -> str:
+        # Guard against None or non-string input
+        if ingredient is None:
+            return ""
+        if not isinstance(ingredient, str):
+            ingredient = str(ingredient)
         # Normalize unicode (full-width to half-width), strip, and remove all spaces
         normalized = unicodedata.normalize('NFKC', ingredient).strip().replace(" ", "")
         # Apply synonym mapping

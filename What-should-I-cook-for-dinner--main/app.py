@@ -10,8 +10,14 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 
 def load_json(filename):
-    with open(os.path.join(DATA_DIR, filename), 'r', encoding='utf-8') as f:
-        return json.load(f)
+    filepath = os.path.join(DATA_DIR, filename)
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        raise RuntimeError(f"Data file not found: {filepath}")
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"Invalid JSON in {filepath}: {e}")
 
 config = load_json('config.json')
 raw_recipes = load_json('recipes.json')
@@ -28,7 +34,12 @@ def recommend():
         data = request.json
         ingredients = data.get('ingredients', [])
         appliances = data.get('appliances', [])
-        missing_tolerance = int(data.get('missing_tolerance', 1))
+        try:
+            missing_tolerance = int(data.get('missing_tolerance', 1))
+        except (TypeError, ValueError):
+            return jsonify({"error": "missing_tolerance 必須為整數", "recipes": []}), 400
+        if not (0 <= missing_tolerance <= 3):
+            return jsonify({"error": "missing_tolerance 範圍須介於 0 至 3", "recipes": []}), 400
         
         user = User(
             user_id="anonymous",

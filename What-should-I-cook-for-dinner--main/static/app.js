@@ -59,8 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const tag = document.createElement('div');
             tag.className = 'tag';
             tag.innerHTML = `
-                ${ing}
-                <span class="tag-remove" data-index="${i}">&times;</span>
+                <i class="fa-solid fa-leaf"></i> ${ing}
+                <span class="tag-remove" data-index="${i}"><i class="fa-solid fa-xmark"></i></span>
             `;
             tagsContainer.appendChild(tag);
         });
@@ -82,7 +82,11 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsSection.classList.remove('hidden');
         errorMsg.classList.add('hidden');
         fallbackContainer.classList.add('hidden');
-        gridEl.innerHTML = '<p style="text-align:center;width:100%;padding:2rem;">搜尋中... 🍳</p>';
+        gridEl.innerHTML = `
+            <div class="loading-wrapper">
+                <div class="spinner"><i class="fa-solid fa-fan"></i></div>
+                <p style="color:var(--text-muted)">正在幫你翻找冰箱與食譜...</p>
+            </div>`;
 
         try {
             const response = await fetch('/recommend', {
@@ -123,8 +127,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="status-tag ${r.tag_class}">${r.tag_text}</span>
                         <h3 class="recipe-title">${r.name}</h3>
                         <div class="recipe-meta">
-                            <span>⏱️ ${r.cook_time ? r.cook_time + ' 分' : '-'}</span>
-                            <span>🍳 ${r.required_appliances.filter(a => a).length > 0 ? r.required_appliances.join(', ') : '無需求'}</span>
+                            <span><i class="fa-regular fa-clock"></i> ${r.cook_time ? r.cook_time + ' 分鐘' : '-'}</span>
+                            <span><i class="fa-solid fa-kitchen-set"></i> ${r.required_appliances.filter(a => a).length > 0 ? r.required_appliances.join(', ') : '無需求'}</span>
                         </div>
                     </div>
                 `;

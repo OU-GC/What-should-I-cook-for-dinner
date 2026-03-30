@@ -1,0 +1,21 @@
+# 階段性任務清單 (Task Lists)
+
+- [ ] **階段一：專案與資料初始化 (Project Setup & Data Modeling)**
+    - [ ] 1. 建立專案基礎架構與資料夾結構
+    - [ ] 2. 定義核心資料結構 (User Schema, Recipe Schema)
+    - [ ] 3. 建立 **Data Validator 驗證層**，確保不完整的食譜資料能在載入時被過濾 (對齊 PRD 11.3)
+    - [ ] 4. 準備 Mock Data，將常備品設計為可配置結構 (對齊 PRD 12.2)
+- [ ] **階段二：搜尋引擎核心模組開發 (Core Engine Development)**
+    - [ ] 1. 開發 `DataNormalizer` 模組 (處理食材同義詞、全半形、去空白)
+    - [ ] 2. 開發防呆機制：攔截 0 項食材輸入 (對齊 PRD 11.4)
+    - [ ] 3. 開發 `ApplianceFilter` 模組，並實作「未設定廚具時的 Bypass 機制」(對齊 PRD 11.1 & AC3)
+    - [ ] 4. 開發 `IngredientCalculator` 模組 (排除常備品，計算缺料)
+    - [ ] 5. 開發 `RecommendationEngine` 模組 (Slider 容忍值過濾與符合度計分)
+    - [ ] 6. 開發 `Sorter` 模組 (依照缺料數、匹配數、符合度排序，對齊 AC1)
+- [ ] **階段三：主流程整合與介面回饋 (Integration & Interface)**
+    - [ ] 1. 整合所有模組至主推薦入口 `/recommend`，確保回應時間優化至 2 秒內 (對齊 PRD 12.1)
+    - [ ] 2. 實作「無結果處理 (Fallback)」：當查無食譜時，回傳標準化的三大友善建議格式 (對齊 PRD 8.3)
+    - [ ] 3. 實作食譜回傳卡片的文案標籤 (如：可直接做、還缺1樣)
+- [ ] **階段四：測試與驗收 (Testing & Validation)**
+    - [ ] 1. 實作 AC1, AC2, AC3 的測試案例
+    - [ ] 2. 實作邊界測試 (Bypass 廚具、不完整資料過濾、常備品配置生效)

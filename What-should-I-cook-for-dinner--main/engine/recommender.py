@@ -30,7 +30,8 @@ class Sorter:
 class RecommendationEngine:
     def __init__(self, config: Dict[str, Any], raw_recipes: List[Dict[str, Any]]):
         self.normalizer = DataNormalizer(config.get('synonyms', {}))
-        self.calculator = IngredientCalculator(config.get('standard_condiments', []))
+        normalized_condiments = self.normalizer.normalize_list(config.get('standard_condiments', []))
+        self.calculator = IngredientCalculator(normalized_condiments)
         
         # Load and validate recipes
         self.recipes = []
