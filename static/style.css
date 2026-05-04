@@ -13,13 +13,18 @@
     --accent-soft: #c5a884;
     --sage: #7d8a6f;          /* 鼠尾草綠 */
 
+    --orange: #d97a3d;        /* 柿橘 */
+    --orange-soft: #e89556;
+    --orange-pale: #f4d6b8;
+    --orange-glow: rgba(217, 122, 61, 0.18);
+
     --line: #d9cfc1;
     --line-soft: #e8ddca;
 
     --tag-ready-bg: #e8ede0;
     --tag-ready-text: #5a6b4d;
-    --tag-almost-bg: #f3ead2;
-    --tag-almost-text: #8a6d2b;
+    --tag-almost-bg: #fae3cc;
+    --tag-almost-text: #b96425;
     --tag-missing-bg: #f0dcd2;
     --tag-missing-text: #8a4a35;
 
@@ -91,15 +96,38 @@ h1, h2, h3, h4 {
     transform: translateX(-50%);
     background: var(--bg-base);
     padding: 0 1rem;
-    color: var(--accent);
+    color: var(--orange);
     letter-spacing: 0.5rem;
     font-size: 0.9rem;
+}
+
+/* 橘色裝飾圓 (hero 旁的小太陽 / 橘子) */
+.hero::after {
+    content: '';
+    position: absolute;
+    top: -1rem;
+    right: 8%;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, var(--orange-soft), var(--orange));
+    box-shadow:
+        0 0 0 6px var(--bg-base),
+        0 0 0 7px var(--orange-pale),
+        0 8px 24px var(--orange-glow);
+    opacity: 0.85;
+    animation: floatSun 6s ease-in-out infinite;
+}
+
+@keyframes floatSun {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
 }
 
 .hero-icon {
     font-family: var(--font-serif-en);
     font-size: 1rem;
-    color: var(--accent);
+    color: var(--orange);
     margin-bottom: 1.5rem;
     letter-spacing: 0.4em;
     text-transform: uppercase;
@@ -164,13 +192,13 @@ h1, h2, h3, h4 {
     font-family: var(--font-serif-en);
     font-style: italic;
     font-size: 0.95rem;
-    color: var(--accent);
+    color: var(--orange);
     letter-spacing: 0.05em;
 }
 
 .title-icon::before {
     content: '— ';
-    color: var(--accent-soft);
+    color: var(--orange-soft);
 }
 
 /* --- Inputs --- */
@@ -260,12 +288,12 @@ input[type="text"]:focus ~ .input-icon,
     width: 100%;
     padding: 1.1rem;
     margin-top: 2rem;
-    background: var(--ink);
+    background: var(--orange);
     color: var(--bg-paper);
     font-size: 1rem;
     font-weight: 500;
     border-radius: var(--radius-sm);
-    box-shadow: none;
+    box-shadow: 0 6px 18px var(--orange-glow);
     position: relative;
     overflow: hidden;
     letter-spacing: 0.4em;
@@ -275,19 +303,21 @@ input[type="text"]:focus ~ .input-icon,
 .btn.action-btn::after { display: none; }
 
 .btn.action-btn:hover {
-    background: var(--accent);
+    background: var(--orange-soft);
     color: var(--bg-paper);
-    transform: none;
-    box-shadow: 0 4px 20px rgba(138, 109, 75, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 28px var(--orange-glow);
 }
 
 .btn.action-btn i {
     font-size: 0.85rem;
-    color: var(--accent-soft);
+    color: var(--bg-paper);
+    opacity: 0.85;
 }
 
 .btn.action-btn:hover i {
     color: var(--bg-paper);
+    opacity: 1;
 }
 
 /* --- Tags --- */
@@ -327,7 +357,7 @@ input[type="text"]:focus ~ .input-icon,
 
 .tag-remove:hover {
     opacity: 1;
-    color: var(--accent);
+    color: var(--orange);
     background: transparent;
 }
 
@@ -350,7 +380,7 @@ input[type="text"]:focus ~ .input-icon,
 
 .badge {
     background: transparent;
-    color: var(--accent);
+    color: var(--orange);
     padding: 0;
     border-radius: 0;
     font-weight: 500;
@@ -360,8 +390,8 @@ input[type="text"]:focus ~ .input-icon,
     letter-spacing: 0.05em;
 }
 
-.badge::before { content: '« '; color: var(--accent-soft); }
-.badge::after { content: ' »'; color: var(--accent-soft); }
+.badge::before { content: '« '; color: var(--orange-soft); }
+.badge::after { content: ' »'; color: var(--orange-soft); }
 
 /* Custom Range Slider */
 .custom-slider {
@@ -377,28 +407,29 @@ input[type="text"]:focus ~ .input-icon,
 .custom-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
-    background: var(--bg-paper);
+    background: var(--orange);
     cursor: pointer;
-    box-shadow: none;
+    box-shadow: 0 0 0 4px var(--bg-paper), 0 0 0 5px var(--orange-pale);
     transition: var(--transition);
-    border: 1.5px solid var(--accent);
+    border: none;
 }
 
 .custom-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.2);
-    background: var(--accent);
+    transform: scale(1.15);
+    background: var(--orange-soft);
 }
 
 .custom-slider::-moz-range-thumb {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
-    background: var(--bg-paper);
+    background: var(--orange);
     cursor: pointer;
-    border: 1.5px solid var(--accent);
+    border: none;
+    box-shadow: 0 0 0 4px var(--bg-paper), 0 0 0 5px var(--orange-pale);
 }
 
 .help-text {
@@ -498,8 +529,17 @@ input[type="text"]:focus ~ .input-icon,
     left: 50%;
     transform: translateX(-50%);
     width: 40px;
-    height: 1px;
-    background: var(--accent);
+    height: 2px;
+    background: var(--orange);
+}
+
+.results-header::before {
+    content: '✦';
+    display: block;
+    font-size: 0.9rem;
+    color: var(--orange);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0;
 }
 
 .error-msg {
@@ -573,10 +613,33 @@ input[type="text"]:focus ~ .input-icon,
     animation: fadeUpIn 0.6s ease forwards;
 }
 
+.recipe-card {
+    position: relative;
+}
+
+.recipe-card::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--orange);
+    box-shadow: 0 0 0 3px var(--bg-paper);
+    z-index: 2;
+    opacity: 0;
+    transition: var(--transition);
+}
+
 .recipe-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(42, 38, 34, 0.08);
-    border-color: var(--accent-soft);
+    box-shadow: 0 12px 30px var(--orange-glow);
+    border-color: var(--orange-soft);
+}
+
+.recipe-card:hover::before {
+    opacity: 1;
 }
 
 .recipe-img {
@@ -647,7 +710,7 @@ input[type="text"]:focus ~ .input-icon,
 .recipe-meta span i {
     width: 14px;
     text-align: center;
-    color: var(--accent);
+    color: var(--orange);
     font-size: 0.8rem;
 }
 
@@ -663,9 +726,54 @@ input[type="text"]:focus ~ .input-icon,
 
 .spinner {
     font-size: 1.5rem;
-    color: var(--accent);
+    color: var(--orange);
     animation: spin 2s linear infinite;
     margin-bottom: 1rem;
+}
+
+/* 散落在頁面角落的淡橘色裝飾 */
+.app-container::before,
+.app-container::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--orange-soft), transparent 70%);
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.app-container::before {
+    top: 12%;
+    left: 4%;
+    width: 220px;
+    height: 220px;
+}
+
+.app-container::after {
+    bottom: 8%;
+    right: 5%;
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle, var(--orange-pale), transparent 70%);
+    opacity: 0.35;
+}
+
+/* 細小的橘色 ornament 線條，放在 input panel 的右上 */
+.input-section::before,
+.settings-section::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    right: 2.2rem;
+    width: 28px;
+    height: 3px;
+    background: var(--orange);
+    border-radius: 2px;
+}
+
+.input-section, .settings-section {
+    position: relative;
 }
 
 /* Animations */
