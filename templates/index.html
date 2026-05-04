@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>晚餐煮什麼？ Premium Edition</title>
-    <!-- Premium Fonts -->
+    <title>今晚，煮點什麼？</title>
+    <!-- 文青襯線字體 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@300;500;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@400;500;600&display=swap"
         rel="stylesheet">
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -27,13 +27,13 @@
     <div class="app-container">
         <header class="hero">
             <div class="hero-icon"><i class="fa-solid fa-fire-burner"></i></div>
-            <h1>晚餐煮什麼？</h1>
-            <p>用冰箱裡的現有食材，快速決定今晚吃什麼</p>
+            <h1>今晚，煮點什麼</h1>
+            <p>翻翻冰箱裡剩下的，讓今晚的餐桌，剛剛好。</p>
         </header>
 
         <main class="content">
             <section class="input-section glass-panel">
-                <h2><i class="fa-solid fa-lemon title-icon"></i> 1. 你有什麼食材？</h2>
+                <h2>手邊的食材 <i class="title-icon">i. ingredients</i></h2>
                 <div class="input-group">
                     <div class="input-wrapper">
                         <i class="fa-solid fa-magnifying-glass input-icon"></i>
@@ -45,7 +45,7 @@
             </section>
 
             <section class="settings-section glass-panel stagger-1">
-                <h2><i class="fa-solid fa-sliders title-icon"></i> 2. 條件設定</h2>
+                <h2>一些小小的偏好 <i class="title-icon">ii. preferences</i></h2>
 
                 <div class="setting-group margin-bottom-lg">
                     <div class="slider-header">
@@ -79,13 +79,13 @@
                 </div>
 
                 <button id="search-btn" class="btn lg action-btn">
-                    <span>幫我推薦菜譜</span>
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>翻開今晚的菜單</span>
+                    <i class="fa-solid fa-feather-pointed"></i>
                 </button>
             </section>
 
             <section id="results-section" class="results-section hidden">
-                <h2 id="results-title" class="results-header"><i class="fa-solid fa-utensils"></i> 推薦結果</h2>
+                <h2 id="results-title" class="results-header">今晚的選擇</h2>
                 <div id="error-message" class="error-msg glass-panel hidden"></div>
 
                 <div id="fallback-container" class="fallback-card glass-panel hidden">
