@@ -1,8 +1,16 @@
 import json
 import os
+import time
 from flask import Flask, render_template, request, jsonify
 from engine.models import User
 from engine.recommender import RecommendationEngine
+from engine.storage import RecipeStorage
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 app = Flask(__name__)
 
@@ -20,9 +28,17 @@ def load_json(filename):
         raise RuntimeError(f"Invalid JSON in {filepath}: {e}")
 
 config = load_json('config.json')
-raw_recipes = load_json('recipes.json')
+storage = RecipeStorage()
 
-engine = RecommendationEngine(config, raw_recipes)
+CACHE_TTL_SECONDS = 60
+_engine_cache = {'engine': None, 'expires_at': 0.0}
+
+def get_engine() -> RecommendationEngine:
+    now = time.time()
+    if _engine_cache['engine'] is None or now >= _engine_cache['expires_at']:
+        _engine_cache['engine'] = RecommendationEngine(config, storage.list_all())
+        _engine_cache['expires_at'] = now + CACHE_TTL_SECONDS
+    return _engine_cache['engine']
 
 @app.route('/')
 def index():
@@ -47,7 +63,7 @@ def recommend():
             missing_tolerance=missing_tolerance
         )
         
-        result = engine.get_recommendations(user, ingredients)
+        result = get_engine().get_recommendations(user, ingredients)
         
         formatted_recipes = []
         for r in result.get('recipes', []):
