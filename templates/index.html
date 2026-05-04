@@ -5,51 +5,127 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>今晚，煮點什麼？</title>
-    <!-- 文青襯線字體 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,500&family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@400;500;600;700&display=swap"
         rel="stylesheet">
-    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
-    <!-- Animated Background -->
-    <div class="bg-animated">
-        <div class="glow glow-1"></div>
-        <div class="glow glow-2"></div>
-        <div class="glow glow-3"></div>
+    <!-- 散落的食物塗鴉 -->
+    <div class="food-doodles" aria-hidden="true">
+        <svg class="doodle doodle-tomato" viewBox="0 0 64 64">
+            <circle cx="32" cy="38" r="20" fill="#ee6a4d"/>
+            <ellipse cx="25" cy="32" rx="4.5" ry="2.5" fill="#fff" opacity="0.45" transform="rotate(-25 25 32)"/>
+            <path d="M22 22 L32 18 L42 22 L36 26 L32 22 L28 26 Z" fill="#7eb069"/>
+            <rect x="30" y="13" width="4" height="7" rx="2" fill="#7eb069"/>
+        </svg>
+
+        <svg class="doodle doodle-egg" viewBox="0 0 64 64">
+            <ellipse cx="32" cy="36" rx="22" ry="26" fill="#fffbef" stroke="#e8d4a8" stroke-width="2"/>
+            <circle cx="32" cy="38" r="10" fill="#ffc94a"/>
+            <circle cx="29" cy="35" r="3" fill="#fff" opacity="0.7"/>
+        </svg>
+
+        <svg class="doodle doodle-carrot" viewBox="0 0 64 64">
+            <path d="M32 56 L20 24 Q32 20 44 24 Z" fill="#ed8a3c" stroke="#c46524" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M26 32 L34 32 M28 40 L36 40 M30 48 L34 48" stroke="#c46524" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M28 24 L26 12 M32 22 L32 10 M36 24 L38 12" stroke="#7eb069" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+
+        <svg class="doodle doodle-mushroom" viewBox="0 0 64 64">
+            <path d="M14 32 Q14 14 32 14 Q50 14 50 32 Z" fill="#d97a3d"/>
+            <circle cx="22" cy="26" r="3" fill="#fffbef"/>
+            <circle cx="36" cy="22" r="2.2" fill="#fffbef"/>
+            <circle cx="40" cy="30" r="2.6" fill="#fffbef"/>
+            <path d="M22 32 H42 V46 Q42 52 36 52 H28 Q22 52 22 46 Z" fill="#fffbef" stroke="#e8d4a8" stroke-width="1.8"/>
+            <circle cx="29" cy="42" r="0.8" fill="#2a2622"/>
+            <circle cx="35" cy="42" r="0.8" fill="#2a2622"/>
+            <path d="M30 46 Q32 47.5 34 46" stroke="#2a2622" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        </svg>
+
+        <svg class="doodle doodle-bread" viewBox="0 0 64 64">
+            <path d="M10 30 Q10 20 20 20 H44 Q54 20 54 30 V46 Q54 50 50 50 H14 Q10 50 10 46 Z" fill="#e6a86b" stroke="#a76d36" stroke-width="2"/>
+            <path d="M16 28 L20 32 M26 26 L30 30 M36 26 L40 30 M46 28 L50 32" stroke="#a76d36" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+
+        <svg class="doodle doodle-leaf" viewBox="0 0 64 64">
+            <path d="M14 50 Q14 14 50 14 Q50 50 14 50 Z" fill="#9ec087" stroke="#5a7a48" stroke-width="2"/>
+            <path d="M16 48 Q32 32 48 16" stroke="#5a7a48" stroke-width="1.5" fill="none"/>
+        </svg>
+
+        <svg class="doodle doodle-pepper" viewBox="0 0 64 64">
+            <path d="M22 16 Q26 14 30 16 Q34 14 38 16" stroke="#5a7a48" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M24 22 Q24 18 30 18 Q36 18 36 22 Q44 30 44 42 Q44 54 32 54 Q20 54 20 42 Q20 30 24 22 Z" fill="#e34d3d"/>
+            <ellipse cx="28" cy="30" rx="3" ry="6" fill="#fff" opacity="0.3"/>
+        </svg>
+
+        <svg class="doodle doodle-onion" viewBox="0 0 64 64">
+            <path d="M32 12 Q34 18 36 18 Q38 12 40 14 Q38 18 38 22 Q50 28 50 42 Q50 54 32 54 Q14 54 14 42 Q14 28 26 22 Q26 18 24 14 Q26 12 28 18 Q30 18 32 12 Z" fill="#c896d6"/>
+            <path d="M22 30 Q22 42 28 50 M42 30 Q42 42 36 50" stroke="#a070b8" stroke-width="1.2" fill="none"/>
+        </svg>
     </div>
 
     <div class="app-container">
         <header class="hero">
-            <div class="hero-icon"><i class="fa-solid fa-fire-burner"></i></div>
-            <h1>今晚，煮點什麼</h1>
-            <p>翻翻冰箱裡剩下的，讓今晚的餐桌，剛剛好。</p>
+            <div class="hero-icon">
+                <svg class="hero-pot" viewBox="0 0 80 80">
+                    <path class="steam" d="M28 16 Q28 8 34 12 Q40 16 36 6" stroke="#d97a3d" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                    <path class="steam steam-2" d="M42 18 Q42 8 48 14 Q54 20 50 6" stroke="#d97a3d" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="40" cy="32" rx="26" ry="4" fill="#2a2622"/>
+                    <path d="M14 32 H66 V56 Q66 64 58 64 H22 Q14 64 14 56 Z" fill="#fffbef" stroke="#2a2622" stroke-width="2.5"/>
+                    <rect x="6" y="38" width="10" height="4" rx="2" fill="#2a2622"/>
+                    <rect x="64" y="38" width="10" height="4" rx="2" fill="#2a2622"/>
+                    <circle cx="32" cy="48" r="1.5" fill="#2a2622"/>
+                    <circle cx="48" cy="48" r="1.5" fill="#2a2622"/>
+                    <path d="M34 54 Q40 58 46 54" stroke="#2a2622" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <circle cx="26" cy="52" r="2" fill="#f4b8a0" opacity="0.6"/>
+                    <circle cx="54" cy="52" r="2" fill="#f4b8a0" opacity="0.6"/>
+                </svg>
+            </div>
+            <h1>今晚，煮點什麼？</h1>
+            <p>翻翻冰箱裡剩下的，跟我們一起<span class="hl">玩煮飯</span>，今晚的餐桌剛剛好 ✿</p>
         </header>
 
         <main class="content">
             <section class="input-section glass-panel">
-                <h2>手邊的食材 <i class="title-icon">i. ingredients</i></h2>
+                <h2>
+                    <span class="step-badge">01</span>
+                    手邊有什麼好料？
+                    <svg class="head-icon" viewBox="0 0 32 32">
+                        <circle cx="16" cy="18" r="10" fill="#ee6a4d"/>
+                        <path d="M11 12 L16 10 L21 12 L18 14 L16 12 L14 14 Z" fill="#7eb069"/>
+                    </svg>
+                </h2>
                 <div class="input-group">
                     <div class="input-wrapper">
                         <i class="fa-solid fa-magnifying-glass input-icon"></i>
-                        <input type="text" id="ingredient-input" placeholder="例如：雞蛋、高麗菜（按 Enter 加入）">
+                        <input type="text" id="ingredient-input" placeholder="像是雞蛋、高麗菜… 按 Enter 丟進籃子裡">
                     </div>
-                    <button id="add-ingredient-btn" class="btn primary"><i class="fa-solid fa-plus"></i> 新增</button>
+                    <button id="add-ingredient-btn" class="btn primary"><i class="fa-solid fa-plus"></i> 加入</button>
                 </div>
                 <div id="ingredient-tags" class="tags-container"></div>
             </section>
 
             <section class="settings-section glass-panel stagger-1">
-                <h2>一些小小的偏好 <i class="title-icon">ii. preferences</i></h2>
+                <h2>
+                    <span class="step-badge">02</span>
+                    今天的小心情
+                    <svg class="head-icon" viewBox="0 0 32 32">
+                        <path d="M7 14 Q7 6 16 6 Q25 6 25 14 Z" fill="#d97a3d"/>
+                        <circle cx="11" cy="12" r="1.4" fill="#fffbef"/>
+                        <circle cx="18" cy="10" r="1.1" fill="#fffbef"/>
+                        <circle cx="20" cy="14" r="1.3" fill="#fffbef"/>
+                        <path d="M11 14 H21 V22 Q21 26 17 26 H15 Q11 26 11 22 Z" fill="#fffbef" stroke="#e8d4a8" stroke-width="1"/>
+                    </svg>
+                </h2>
 
                 <div class="setting-group margin-bottom-lg">
                     <div class="slider-header">
-                        <label for="tolerance-slider">最多可接受缺少幾樣買不到的食材？</label>
+                        <label for="tolerance-slider">最多可以缺幾樣食材呢？</label>
                         <span class="badge"><span id="tolerance-val">1</span> 樣</span>
                     </div>
                     <input type="range" class="custom-slider" id="tolerance-slider" min="0" max="3" value="1">
@@ -57,7 +133,7 @@
                 </div>
 
                 <div class="setting-group">
-                    <label class="section-label">我的廚具有哪些？</label>
+                    <label class="section-label">我家廚房有的小幫手 ☉</label>
                     <div class="checkbox-group">
                         <label class="toggle-btn">
                             <input type="checkbox" name="appliance" value="快煮鍋">
@@ -73,19 +149,25 @@
                         </label>
                         <label class="toggle-btn">
                             <input type="checkbox" name="appliance" value="明火瓦斯爐">
-                            <span class="toggle-content"><i class="fa-solid fa-fire"></i> 明火瓦斯爐</span>
+                            <span class="toggle-content"><i class="fa-solid fa-fire"></i> 瓦斯爐</span>
                         </label>
                     </div>
                 </div>
 
                 <button id="search-btn" class="btn lg action-btn">
-                    <span>翻開今晚的菜單</span>
-                    <i class="fa-solid fa-feather-pointed"></i>
+                    <svg class="btn-pot" viewBox="0 0 32 32">
+                        <path class="btn-steam" d="M11 6 Q11 2 14 4 Q17 6 15 0" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                        <path class="btn-steam" d="M18 7 Q18 2 21 4 Q24 7 22 1" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                        <ellipse cx="16" cy="14" rx="11" ry="1.6" fill="currentColor"/>
+                        <path d="M5 14 H27 V24 Q27 28 23 28 H9 Q5 28 5 24 Z" fill="currentColor"/>
+                    </svg>
+                    <span>來抽今晚的菜單！</span>
+                    <span class="dice">✦</span>
                 </button>
             </section>
 
             <section id="results-section" class="results-section hidden">
-                <h2 id="results-title" class="results-header">今晚的選擇</h2>
+                <h2 id="results-title" class="results-header">為你選了這幾道</h2>
                 <div id="error-message" class="error-msg glass-panel hidden"></div>
 
                 <div id="fallback-container" class="fallback-card glass-panel hidden">

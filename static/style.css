@@ -46,10 +46,11 @@
 }
 
 body {
-    background-color: var(--bg-base);
+    background-color: #fbf3e6;
     background-image:
-        radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.4) 0, transparent 40%),
-        radial-gradient(circle at 80% 90%, rgba(0, 0, 0, 0.02) 0, transparent 50%);
+        radial-gradient(circle at 15% 10%, #ffe9c8 0, transparent 35%),
+        radial-gradient(circle at 85% 90%, #fde0c8 0, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.3) 0, transparent 60%);
     color: var(--ink);
     font-family: var(--font-serif-tc);
     font-weight: 400;
@@ -58,6 +59,52 @@ body {
     overflow-x: hidden;
     position: relative;
     letter-spacing: 0.02em;
+}
+
+/* === 散落食物塗鴉 === */
+.food-doodles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.doodle {
+    position: absolute;
+    width: 56px;
+    height: 56px;
+    opacity: 0.85;
+    filter: drop-shadow(0 4px 8px rgba(217, 122, 61, 0.12));
+    animation: doodleFloat 7s ease-in-out infinite;
+}
+
+.doodle-tomato { top: 8%; left: 6%; transform: rotate(-12deg); animation-delay: 0s; }
+.doodle-egg    { top: 22%; right: 8%; width: 50px; height: 50px; transform: rotate(15deg); animation-delay: -1.5s; }
+.doodle-carrot { top: 55%; left: 4%; width: 60px; height: 60px; transform: rotate(-20deg); animation-delay: -3s; }
+.doodle-mushroom { top: 70%; right: 6%; width: 64px; height: 64px; transform: rotate(8deg); animation-delay: -2s; }
+.doodle-bread  { bottom: 8%; left: 10%; width: 70px; height: 70px; transform: rotate(-5deg); animation-delay: -4s; }
+.doodle-leaf   { top: 38%; right: 4%; width: 46px; height: 46px; transform: rotate(25deg); animation-delay: -5s; opacity: 0.55; }
+.doodle-pepper { top: 5%; right: 22%; width: 42px; height: 42px; transform: rotate(-18deg); animation-delay: -2.5s; opacity: 0.7; }
+.doodle-onion  { bottom: 32%; right: 14%; width: 52px; height: 52px; transform: rotate(10deg); animation-delay: -6s; opacity: 0.7; }
+
+@keyframes doodleFloat {
+    0%, 100% { transform: translate(0, 0) rotate(var(--r, 0deg)); }
+    50%      { transform: translate(0, -10px) rotate(var(--r, 0deg)); }
+}
+
+.doodle-tomato   { --r: -12deg; }
+.doodle-egg      { --r: 15deg; }
+.doodle-carrot   { --r: -20deg; }
+.doodle-mushroom { --r: 8deg; }
+.doodle-bread    { --r: -5deg; }
+.doodle-leaf     { --r: 25deg; }
+.doodle-pepper   { --r: -18deg; }
+.doodle-onion    { --r: 10deg; }
+
+@media (max-width: 720px) {
+    .doodle { width: 42px; height: 42px; opacity: 0.55; }
+    .doodle-leaf, .doodle-pepper, .doodle-onion { display: none; }
 }
 
 h1, h2, h3, h4 {
@@ -74,7 +121,7 @@ h1, h2, h3, h4 {
 .app-container {
     max-width: 760px;
     margin: 0 auto;
-    padding: 5rem 2rem 6rem;
+    padding: 4rem 2rem 6rem;
     position: relative;
     z-index: 1;
 }
@@ -101,54 +148,69 @@ h1, h2, h3, h4 {
     font-size: 0.9rem;
 }
 
-/* 橘色裝飾圓 (hero 旁的小太陽 / 橘子) */
-.hero::after {
-    content: '';
-    position: absolute;
-    top: -1rem;
-    right: 8%;
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, var(--orange-soft), var(--orange));
-    box-shadow:
-        0 0 0 6px var(--bg-base),
-        0 0 0 7px var(--orange-pale),
-        0 8px 24px var(--orange-glow);
-    opacity: 0.85;
-    animation: floatSun 6s ease-in-out infinite;
-}
-
-@keyframes floatSun {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
+.hero p .hl {
+    color: var(--orange);
+    font-weight: 600;
+    background: linear-gradient(transparent 65%, var(--orange-pale) 65%, var(--orange-pale) 95%, transparent 95%);
+    padding: 0 0.2em;
 }
 
 .hero-icon {
-    font-family: var(--font-serif-en);
-    font-size: 1rem;
-    color: var(--orange);
-    margin-bottom: 1.5rem;
-    letter-spacing: 0.4em;
-    text-transform: uppercase;
-    font-style: italic;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
 }
 
 .hero-icon i { display: none; }
 
-.hero-icon::after {
-    content: 'À table';
+.hero-pot {
+    width: 96px;
+    height: 96px;
+    animation: bobble 3.2s ease-in-out infinite;
+    transform-origin: center bottom;
+    filter: drop-shadow(0 8px 14px rgba(217, 122, 61, 0.2));
+}
+
+.hero-pot .steam {
+    animation: steamRise 2.4s ease-in-out infinite;
+    transform-origin: center bottom;
+}
+
+.hero-pot .steam-2 { animation-delay: -1.2s; }
+
+@keyframes bobble {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50%      { transform: translateY(-4px) rotate(2deg); }
+}
+
+@keyframes steamRise {
+    0%   { opacity: 0; transform: translateY(4px) scale(0.9); }
+    50%  { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-4px) scale(1.1); }
 }
 
 .hero h1 {
-    font-size: 3rem;
-    font-weight: 500;
+    font-size: 2.8rem;
+    font-weight: 600;
     color: var(--ink);
-    margin-bottom: 1.2rem;
-    letter-spacing: 0.15em;
+    margin-bottom: 1rem;
+    letter-spacing: 0.1em;
     background: none;
     -webkit-text-fill-color: var(--ink);
 }
+
+.hero h1::before,
+.hero h1::after {
+    content: '✿';
+    color: var(--orange-soft);
+    font-size: 1.2rem;
+    margin: 0 0.6rem;
+    vertical-align: middle;
+    display: inline-block;
+    animation: spin 8s linear infinite;
+}
+
+.hero h1::after { animation-direction: reverse; }
 
 .hero p {
     color: var(--ink-soft);
@@ -165,40 +227,72 @@ h1, h2, h3, h4 {
     background: var(--bg-paper);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-md);
-    padding: 2.5rem 2.2rem;
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+    border: 1.5px solid var(--line);
+    border-radius: 18px;
+    padding: 2.2rem 2rem;
+    box-shadow: 0 4px 0 var(--line-soft), 0 8px 24px rgba(217, 122, 61, 0.06);
     margin-bottom: 2rem;
     transition: var(--transition);
+    position: relative;
+}
+
+.glass-panel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--orange-pale), 0 12px 30px rgba(217, 122, 61, 0.1);
 }
 
 .glass-panel h2 {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     color: var(--ink);
-    margin-bottom: 2rem;
+    margin-bottom: 1.8rem;
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 0.8rem;
-    font-weight: 500;
-    letter-spacing: 0.15em;
-    border-bottom: 1px solid var(--line-soft);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    border-bottom: 1px dashed var(--line);
     padding-bottom: 1rem;
 }
 
-.title-icon {
-    background: none;
-    padding: 0;
-    font-family: var(--font-serif-en);
+.title-icon { display: none; }
+
+/* 步驟徽章 (01 / 02) — 像遊戲關卡 */
+.step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--orange);
+    color: #fffbef;
+    font-family: 'Fraunces', var(--font-serif-en);
     font-style: italic;
+    font-weight: 500;
     font-size: 0.95rem;
-    color: var(--orange);
-    letter-spacing: 0.05em;
+    box-shadow:
+        0 0 0 4px var(--bg-paper),
+        0 0 0 5px var(--orange-pale),
+        0 4px 10px var(--orange-glow);
+    flex-shrink: 0;
+    transition: var(--transition);
 }
 
-.title-icon::before {
-    content: '— ';
-    color: var(--orange-soft);
+.glass-panel:hover .step-badge {
+    transform: rotate(-8deg) scale(1.05);
+}
+
+/* 標題旁邊的小食物圖 */
+.head-icon {
+    width: 28px;
+    height: 28px;
+    margin-left: auto;
+    transition: var(--transition);
+    transform-origin: center;
+}
+
+.glass-panel:hover .head-icon {
+    transform: rotate(15deg) scale(1.15);
 }
 
 /* --- Inputs --- */
@@ -215,21 +309,21 @@ h1, h2, h3, h4 {
 
 .input-icon {
     position: absolute;
-    left: 0.8rem;
+    left: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--ink-muted);
+    color: var(--orange-soft);
     transition: var(--transition);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    pointer-events: none;
 }
 
 input[type="text"] {
     width: 100%;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--line);
-    border-radius: 0;
-    padding: 0.9rem 0.8rem 0.9rem 2.4rem;
+    background: #fff8eb;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    padding: 0.85rem 1rem 0.85rem 2.6rem;
     font-size: 1rem;
     color: var(--ink);
     transition: var(--transition);
@@ -244,9 +338,9 @@ input[type="text"]::placeholder {
 }
 
 input[type="text"]:focus {
-    border-bottom-color: var(--accent);
-    background: transparent;
-    box-shadow: none;
+    border-color: var(--orange);
+    background: #fffbef;
+    box-shadow: 0 0 0 4px var(--orange-pale);
 }
 
 input[type="text"]:focus ~ .input-icon,
@@ -271,53 +365,89 @@ input[type="text"]:focus ~ .input-icon,
 }
 
 .btn.primary {
-    background: transparent;
-    color: var(--ink);
-    padding: 0 1.6rem;
-    border: 1px solid var(--ink);
+    background: var(--bg-paper);
+    color: var(--orange);
+    padding: 0 1.4rem;
+    border: 1.5px solid var(--orange);
+    border-radius: 12px;
+    box-shadow: 0 3px 0 var(--orange-pale);
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .btn.primary:hover {
-    background: var(--ink);
-    color: var(--bg-paper);
-    transform: none;
-    box-shadow: none;
+    background: var(--orange);
+    color: #fffbef;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 #b65a26;
+}
+
+.btn.primary:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 0 #b65a26;
 }
 
 .btn.action-btn {
     width: 100%;
-    padding: 1.1rem;
+    padding: 1.15rem 1.5rem;
     margin-top: 2rem;
     background: var(--orange);
-    color: var(--bg-paper);
-    font-size: 1rem;
-    font-weight: 500;
-    border-radius: var(--radius-sm);
-    box-shadow: 0 6px 18px var(--orange-glow);
+    color: #fffbef;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border-radius: 14px;
+    box-shadow:
+        0 5px 0 #b65a26,
+        0 8px 22px var(--orange-glow);
     position: relative;
-    overflow: hidden;
-    letter-spacing: 0.4em;
-    text-indent: 0.4em;
+    overflow: visible;
+    letter-spacing: 0.2em;
+    gap: 0.8rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.25s ease;
 }
 
 .btn.action-btn::after { display: none; }
 
 .btn.action-btn:hover {
     background: var(--orange-soft);
-    color: var(--bg-paper);
-    transform: translateY(-1px);
-    box-shadow: 0 10px 28px var(--orange-glow);
+    color: #fffbef;
+    transform: translateY(-3px) rotate(-0.5deg);
+    box-shadow:
+        0 8px 0 #b65a26,
+        0 14px 30px var(--orange-glow);
 }
 
-.btn.action-btn i {
-    font-size: 0.85rem;
-    color: var(--bg-paper);
-    opacity: 0.85;
+.btn.action-btn:active {
+    transform: translateY(2px);
+    box-shadow:
+        0 2px 0 #b65a26,
+        0 4px 10px var(--orange-glow);
 }
 
-.btn.action-btn:hover i {
-    color: var(--bg-paper);
-    opacity: 1;
+.btn-pot {
+    width: 26px;
+    height: 26px;
+    color: #fffbef;
+    flex-shrink: 0;
+    animation: jiggle 1.6s ease-in-out infinite;
+}
+
+.btn-pot .btn-steam {
+    animation: steamRise 1.8s ease-in-out infinite;
+}
+
+.btn-pot .btn-steam:nth-child(2) { animation-delay: -0.9s; }
+
+@keyframes jiggle {
+    0%, 100% { transform: rotate(-3deg); }
+    50%      { transform: rotate(3deg); }
+}
+
+.btn.action-btn .dice {
+    display: inline-block;
+    color: #fff5d4;
+    font-size: 1.1rem;
+    margin-left: 0.3rem;
+    animation: spin 4s linear infinite;
 }
 
 /* --- Tags --- */
@@ -329,17 +459,31 @@ input[type="text"]:focus ~ .input-icon,
 }
 
 .tag {
-    background: var(--bg-soft);
-    color: var(--ink);
-    padding: 0.4rem 0.9rem;
-    border-radius: var(--radius-sm);
-    font-size: 0.9rem;
+    background: linear-gradient(135deg, #fff5e0, var(--orange-pale));
+    color: #8a4a1c;
+    padding: 0.45rem 1rem;
+    border-radius: 999px;
+    font-size: 0.92rem;
     display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
-    border: 1px solid var(--line);
-    animation: popIn 0.3s ease forwards;
+    gap: 0.5rem;
+    border: 1.5px solid var(--orange-pale);
+    animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     letter-spacing: 0.05em;
+    font-weight: 500;
+    box-shadow: 0 2px 0 var(--orange-pale);
+    transition: var(--transition);
+}
+
+.tag::before {
+    content: '◉';
+    color: var(--orange);
+    font-size: 0.5rem;
+}
+
+.tag:hover {
+    transform: translateY(-2px) rotate(-1deg);
+    box-shadow: 0 4px 0 var(--orange-pale);
 }
 
 .tag-remove {
@@ -464,43 +608,55 @@ input[type="text"]:focus ~ .input-icon,
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.85rem 1rem;
-    background: transparent;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
+    padding: 0.9rem 1rem;
+    background: var(--bg-paper);
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
     cursor: pointer;
     color: var(--ink-soft);
-    transition: var(--transition);
-    font-weight: 400;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    font-weight: 500;
     font-size: 0.95rem;
     letter-spacing: 0.08em;
+    box-shadow: 0 2px 0 var(--line-soft);
 }
 
 .toggle-content i {
-    font-size: 0.85rem;
-    color: var(--ink-muted);
+    font-size: 0.95rem;
+    color: var(--orange-soft);
+    transition: var(--transition);
 }
 
 .toggle-btn input[type="checkbox"]:checked + .toggle-content {
-    background: var(--ink);
-    border-color: var(--ink);
-    color: var(--bg-paper);
-    box-shadow: none;
+    background: var(--orange);
+    border-color: var(--orange);
+    color: #fffbef;
+    box-shadow: 0 3px 0 #b65a26;
+    transform: translateY(-1px);
 }
 
 .toggle-btn input[type="checkbox"]:checked + .toggle-content i {
-    color: var(--accent-soft);
+    color: #fff5d4;
+    animation: pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .toggle-content:hover {
-    border-color: var(--accent);
-    background: transparent;
-    color: var(--ink);
+    border-color: var(--orange-soft);
+    color: var(--orange);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 var(--orange-pale);
 }
 
 .toggle-btn input[type="checkbox"]:checked + .toggle-content:hover {
-    border-color: var(--ink);
-    background: var(--ink);
+    border-color: var(--orange-soft);
+    background: var(--orange-soft);
+    color: #fffbef;
+}
+
+@keyframes pop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.4) rotate(15deg); }
+    100% { transform: scale(1) rotate(0); }
 }
 
 /* --- Results --- */
@@ -603,14 +759,15 @@ input[type="text"]:focus ~ .input-icon,
 .recipe-card {
     background: var(--bg-paper);
     backdrop-filter: none;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--line);
+    border-radius: 18px;
     overflow: hidden;
-    transition: var(--transition);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     display: flex;
     flex-direction: column;
     opacity: 0;
-    animation: fadeUpIn 0.6s ease forwards;
+    animation: fadeUpIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    box-shadow: 0 4px 0 var(--line-soft);
 }
 
 .recipe-card {
@@ -633,13 +790,17 @@ input[type="text"]:focus ~ .input-icon,
 }
 
 .recipe-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px var(--orange-glow);
+    transform: translateY(-6px) rotate(-0.5deg);
+    box-shadow: 0 8px 0 var(--orange-pale), 0 16px 30px var(--orange-glow);
     border-color: var(--orange-soft);
 }
 
 .recipe-card:hover::before {
     opacity: 1;
+}
+
+.recipe-card:nth-child(even):hover {
+    transform: translateY(-6px) rotate(0.5deg);
 }
 
 .recipe-img {
@@ -675,10 +836,10 @@ input[type="text"]:focus ~ .input-icon,
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    padding: 0.25rem 0.7rem;
-    border-radius: var(--radius-sm);
-    font-size: 0.8rem;
-    font-weight: 400;
+    padding: 0.3rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
     margin-bottom: 1.2rem;
     width: fit-content;
     letter-spacing: 0.08em;
@@ -729,47 +890,6 @@ input[type="text"]:focus ~ .input-icon,
     color: var(--orange);
     animation: spin 2s linear infinite;
     margin-bottom: 1rem;
-}
-
-/* 散落在頁面角落的淡橘色裝飾 */
-.app-container::before,
-.app-container::after {
-    content: '';
-    position: fixed;
-    border-radius: 50%;
-    background: radial-gradient(circle, var(--orange-soft), transparent 70%);
-    opacity: 0.18;
-    pointer-events: none;
-    z-index: 0;
-}
-
-.app-container::before {
-    top: 12%;
-    left: 4%;
-    width: 220px;
-    height: 220px;
-}
-
-.app-container::after {
-    bottom: 8%;
-    right: 5%;
-    width: 280px;
-    height: 280px;
-    background: radial-gradient(circle, var(--orange-pale), transparent 70%);
-    opacity: 0.35;
-}
-
-/* 細小的橘色 ornament 線條，放在 input panel 的右上 */
-.input-section::before,
-.settings-section::before {
-    content: '';
-    position: absolute;
-    top: -1px;
-    right: 2.2rem;
-    width: 28px;
-    height: 3px;
-    background: var(--orange);
-    border-radius: 2px;
 }
 
 .input-section, .settings-section {
