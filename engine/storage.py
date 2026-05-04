@@ -6,12 +6,17 @@ from psycopg.types.json import Jsonb
 
 class RecipeStorage:
     def __init__(self, dsn: Optional[str] = None):
-        self.dsn = dsn or os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL')
-        if not self.dsn:
+        self._explicit_dsn = dsn
+
+    @property
+    def dsn(self) -> str:
+        dsn = self._explicit_dsn or os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL')
+        if not dsn:
             raise RuntimeError(
                 "Postgres connection string not found. "
                 "Set POSTGRES_URL or DATABASE_URL environment variable."
             )
+        return dsn
 
     def _connect(self):
         return psycopg.connect(self.dsn)
