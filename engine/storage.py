@@ -29,7 +29,6 @@ class RecipeStorage:
                     name                TEXT NOT NULL UNIQUE,
                     ingredients         JSONB NOT NULL,
                     required_appliances JSONB NOT NULL,
-                    image_url           TEXT,
                     steps               JSONB,
                     cook_time           INTEGER,
                     created_at          TIMESTAMPTZ DEFAULT NOW()
@@ -41,7 +40,7 @@ class RecipeStorage:
         with self._connect() as conn, conn.cursor() as cur:
             cur.execute("""
                 SELECT recipe_id, name, ingredients, required_appliances,
-                       image_url, steps, cook_time
+                       steps, cook_time
                 FROM recipes
                 ORDER BY recipe_id
             """)
@@ -51,23 +50,21 @@ class RecipeStorage:
             'name': r[1],
             'ingredients': r[2] or [],
             'required_appliances': r[3] or [],
-            'image_url': r[4],
-            'steps': r[5] or [],
-            'cook_time': r[6],
+            'steps': r[4] or [],
+            'cook_time': r[5],
         } for r in rows]
 
     def add(self, recipe: Dict[str, Any]) -> str:
         with self._connect() as conn, conn.cursor() as cur:
             cur.execute("""
                 INSERT INTO recipes
-                    (name, ingredients, required_appliances, image_url, steps, cook_time)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                    (name, ingredients, required_appliances, steps, cook_time)
+                VALUES (%s, %s, %s, %s, %s)
                 RETURNING recipe_id
             """, (
                 recipe['name'],
                 Jsonb(recipe.get('ingredients', [])),
                 Jsonb(recipe.get('required_appliances', [])),
-                recipe.get('image_url'),
                 Jsonb(recipe.get('steps', [])),
                 recipe.get('cook_time'),
             ))
@@ -80,8 +77,8 @@ class RecipeStorage:
             cur.execute("""
                 INSERT INTO recipes
                     (recipe_id, name, ingredients, required_appliances,
-                     image_url, steps, cook_time)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                     steps, cook_time)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 ON CONFLICT (recipe_id) DO NOTHING
                 RETURNING recipe_id
             """, (
@@ -89,7 +86,6 @@ class RecipeStorage:
                 recipe['name'],
                 Jsonb(recipe.get('ingredients', [])),
                 Jsonb(recipe.get('required_appliances', [])),
-                recipe.get('image_url'),
                 Jsonb(recipe.get('steps', [])),
                 recipe.get('cook_time'),
             ))

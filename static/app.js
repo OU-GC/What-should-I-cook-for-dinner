@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.style.animationDelay = `${i * 0.1}s`;
                 
                 card.innerHTML = `
-                    <img src="${r.image_url}" alt="${r.name}" class="recipe-img">
+                    <div class="recipe-img-placeholder"><i class="fa-solid fa-utensils"></i></div>
                     <div class="recipe-content">
                         <span class="status-tag ${r.tag_class}">${r.tag_text}</span>
                         <h3 class="recipe-title">${r.name}</h3>

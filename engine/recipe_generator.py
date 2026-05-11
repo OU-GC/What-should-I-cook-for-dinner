@@ -88,6 +88,5 @@ class RecipeGenerator:
                 "required_appliances": appliances_list,
                 "steps": steps,
                 "cook_time": cook_time,
-                "image_url": None,
             })
         return cleaned

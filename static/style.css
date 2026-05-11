@@ -803,17 +803,22 @@ input[type="text"]:focus ~ .input-icon,
     transform: translateY(-6px) rotate(0.5deg);
 }
 
-.recipe-img {
-    height: 220px;
+.recipe-img-placeholder {
+    height: 160px;
     width: 100%;
-    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--orange-pale), #fff5e0);
     border-bottom: 1px solid var(--line);
-    filter: saturate(0.85) contrast(0.95);
+    color: var(--orange-soft);
+    font-size: 2.5rem;
     transition: var(--transition);
 }
 
-.recipe-card:hover .recipe-img {
-    filter: saturate(1) contrast(1);
+.recipe-card:hover .recipe-img-placeholder {
+    color: var(--orange);
+    background: linear-gradient(135deg, #ffe8cc, var(--orange-pale));
 }
 
 .recipe-content {

@@ -13,6 +13,5 @@ class Recipe:
     name: str
     ingredients: List[str]
     required_appliances: List[str]
-    image_url: Optional[str] = None
     steps: List[str] = field(default_factory=list)
     cook_time: Optional[int] = None

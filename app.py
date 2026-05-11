@@ -91,7 +91,6 @@ def recommend():
             formatted_recipes.append({
                 "recipe_id": recipe_obj.recipe_id,
                 "name": recipe_obj.name,
-                "image_url": recipe_obj.image_url,
                 "cook_time": recipe_obj.cook_time,
                 "steps": recipe_obj.steps,
                 "required_appliances": recipe_obj.required_appliances,
