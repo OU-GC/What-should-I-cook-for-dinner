@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.skipped) {
                 applianceStatus.textContent = data.message || `已加入「${val}」。`;
             } else if (data.added > 0) {
-                applianceStatus.textContent = `已為「${val}」生成 ${data.added} 道菜譜：${(data.recipes || []).join('、')}`;
+                applianceStatus.textContent = `已為「${val}」收錄 ${data.added} 道菜譜到資料庫，按下「來抽今晚的菜單」即可看到推薦。`;
             } else {
                 applianceStatus.textContent = `已加入「${val}」，但未產生任何菜譜。`;
             }
