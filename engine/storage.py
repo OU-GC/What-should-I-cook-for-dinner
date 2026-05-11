@@ -93,6 +93,26 @@ class RecipeStorage:
             conn.commit()
         return str(row[0]) if row else ''
 
+    def increment_rec_times(self, recipe_id: str) -> int:
+        with self._connect() as conn, conn.cursor() as cur:
+            cur.execute("""
+                UPDATE recipes
+                SET rec_times = COALESCE(rec_times, 0) + 1
+                WHERE recipe_id = %s
+                RETURNING rec_times
+            """, (int(recipe_id),))
+            row = cur.fetchone()
+            conn.commit()
+        return int(row[0]) if row else 0
+
+    def reset_rec_times(self, recipe_id: str) -> None:
+        with self._connect() as conn, conn.cursor() as cur:
+            cur.execute(
+                "UPDATE recipes SET rec_times = 0 WHERE recipe_id = %s",
+                (int(recipe_id),),
+            )
+            conn.commit()
+
     def reset_sequence(self) -> None:
         with self._connect() as conn, conn.cursor() as cur:
             cur.execute("""

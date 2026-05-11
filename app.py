@@ -179,5 +179,35 @@ def add_appliance():
     except Exception as e:
         return jsonify({"error": str(e), "added": 0}), 500
 
+@app.route('/recipes/expand', methods=['POST'])
+def expand_recipes():
+    try:
+        existing = storage.list_all()
+
+        try:
+            generated = recipe_generator.generate_from_existing(existing, count=5)
+        except RuntimeError as e:
+            return jsonify({"error": str(e), "added": 0}), 500
+        except Exception as e:
+            return jsonify({"error": f"產生菜譜時發生錯誤：{e}", "added": 0}), 500
+
+        added_names = []
+        for recipe in generated:
+            try:
+                storage.add(recipe)
+                added_names.append(recipe['name'])
+            except Exception:
+                continue
+
+        if added_names:
+            invalidate_engine_cache()
+
+        return jsonify({
+            "added": len(added_names),
+            "recipes": added_names,
+        })
+    except Exception as e:
+        return jsonify({"error": str(e), "added": 0}), 500
+
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
