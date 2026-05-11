@@ -1,5 +1,6 @@
 import json
 import os
+import threading
 import time
 from flask import Flask, render_template, request, jsonify
 from engine.models import User
@@ -47,6 +48,55 @@ def get_engine() -> RecommendationEngine:
 def invalidate_engine_cache() -> None:
     _engine_cache['engine'] = None
     _engine_cache['expires_at'] = 0.0
+
+REC_TIMES_THRESHOLD = 3
+_expand_lock = threading.Lock()
+_expand_in_progress = False
+
+def _expand_recipes_background() -> None:
+    global _expand_in_progress
+    try:
+        existing = storage.list_all()
+        generated = recipe_generator.generate_from_existing(existing, count=3)
+        existing_names = {r.get('name', '').strip().lower() for r in existing}
+        added = 0
+        for recipe in generated:
+            if recipe['name'].strip().lower() in existing_names:
+                continue
+            try:
+                storage.add(recipe)
+                existing_names.add(recipe['name'].strip().lower())
+                added += 1
+            except Exception:
+                continue
+        if added:
+            invalidate_engine_cache()
+    except Exception:
+        pass
+    finally:
+        with _expand_lock:
+            _expand_in_progress = False
+
+def _trigger_expansion_if_needed() -> None:
+    global _expand_in_progress
+    with _expand_lock:
+        if _expand_in_progress:
+            return
+        _expand_in_progress = True
+    threading.Thread(target=_expand_recipes_background, daemon=True).start()
+
+def _record_recommendations(recipe_ids: list) -> None:
+    triggered = False
+    for rid in recipe_ids:
+        try:
+            new_count = storage.increment_rec_times(rid)
+            if new_count >= REC_TIMES_THRESHOLD:
+                storage.reset_rec_times(rid)
+                triggered = True
+        except Exception:
+            continue
+    if triggered:
+        _trigger_expansion_if_needed()
 
 @app.route('/')
 def index():
@@ -106,6 +156,14 @@ def recommend():
             "fallback": None
         }
         
+        recommended_ids = [r['recipe_id'] for r in formatted_recipes]
+        if recommended_ids:
+            threading.Thread(
+                target=_record_recommendations,
+                args=(recommended_ids,),
+                daemon=True,
+            ).start()
+
         # Fallsback when no recipes matched but valid input
         if not formatted_recipes and not response["error"]:
             response["fallback"] = {
@@ -185,7 +243,7 @@ def expand_recipes():
         existing = storage.list_all()
 
         try:
-            generated = recipe_generator.generate_from_existing(existing, count=5)
+            generated = recipe_generator.generate_from_existing(existing, count=3)
         except RuntimeError as e:
             return jsonify({"error": str(e), "added": 0}), 500
         except Exception as e:

@@ -69,7 +69,7 @@ class RecipeGenerator:
         "6. 新菜譜的菜名不可與使用者提供的既有菜名重複。"
     )
 
-    def generate_new_recipes(
+    def generate_from_existing(
         self,
         existing_recipes: List[Dict[str, Any]],
         count: int = 3,
