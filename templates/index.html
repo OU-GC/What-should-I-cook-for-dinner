@@ -187,6 +187,28 @@
 
                 <div id="recipes-grid" class="recipes-grid"></div>
             </section>
+
+            <!-- Recipe Detail Modal -->
+            <div id="recipe-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+                <div class="modal-card">
+                    <button id="modal-close-btn" class="modal-close" aria-label="關閉"><i class="fa-solid fa-xmark"></i></button>
+                    <div class="modal-header">
+                        <h3 id="modal-recipe-name" class="modal-title"></h3>
+                        <div id="modal-recipe-meta" class="modal-meta"></div>
+                    </div>
+                    <div class="modal-body">
+                        <div class="modal-section">
+                            <h4 class="modal-section-title"><i class="fa-solid fa-carrot"></i> 所需食材</h4>
+                            <ul id="modal-ingredients" class="modal-ingredients"></ul>
+                        </div>
+                        <div class="modal-divider"></div>
+                        <div class="modal-section">
+                            <h4 class="modal-section-title"><i class="fa-solid fa-list-ol"></i> 製作步驟</h4>
+                            <ol id="modal-steps" class="modal-steps"></ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 

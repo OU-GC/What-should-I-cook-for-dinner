@@ -922,8 +922,266 @@ input[type="text"]:focus ~ .input-icon,
 }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
+/* Card Hint */
+.card-hint {
+    margin-top: 0.8rem;
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    font-style: italic;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: all 0.3s ease;
+}
+
+.card-hint i {
+    font-size: 0.7rem;
+    color: var(--orange-soft);
+}
+
+.recipe-card:hover .card-hint {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* --- Recipe Detail Modal --- */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(42, 38, 34, 0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    animation: modalFadeIn 0.3s ease forwards;
+}
+
+.modal-card {
+    position: relative;
+    background: var(--bg-paper);
+    border: 1.5px solid var(--line);
+    border-radius: 22px;
+    max-width: 540px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow:
+        0 8px 0 var(--line-soft),
+        0 20px 60px rgba(217, 122, 61, 0.12);
+    animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.modal-card::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-card::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modal-card::-webkit-scrollbar-thumb {
+    background: var(--orange-pale);
+    border-radius: 3px;
+}
+
+.modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 36px;
+    height: 36px;
+    border: 1.5px solid var(--line);
+    border-radius: 50%;
+    background: var(--bg-paper);
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 2;
+}
+
+.modal-close:hover {
+    background: var(--orange);
+    color: #fffbef;
+    border-color: var(--orange);
+    transform: rotate(90deg);
+}
+
+.modal-header {
+    padding: 2rem 2rem 1.2rem;
+    border-bottom: 1px dashed var(--line);
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.8rem;
+    padding-right: 2.5rem;
+    line-height: 1.4;
+}
+
+.modal-meta {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+}
+
+.modal-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-meta i {
+    color: var(--orange);
+    font-size: 0.8rem;
+}
+
+.modal-body {
+    padding: 1.5rem 2rem 2rem;
+}
+
+.modal-section {
+    margin-bottom: 0.5rem;
+}
+
+.modal-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.modal-section-title i {
+    color: var(--orange);
+    font-size: 0.9rem;
+}
+
+.modal-divider {
+    height: 1px;
+    background: var(--line);
+    margin: 1.2rem 0 1.5rem;
+    position: relative;
+}
+
+.modal-divider::after {
+    content: '\00B7  \00B7  \00B7';
+    position: absolute;
+    top: -0.55rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-paper);
+    padding: 0 0.8rem;
+    color: var(--orange-soft);
+    font-size: 0.75rem;
+    letter-spacing: 0.3rem;
+}
+
+/* Ingredients list */
+.modal-ingredients {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.modal-ingredients li {
+    background: linear-gradient(135deg, #fff5e0, var(--orange-pale));
+    color: #8a4a1c;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    border: 1px solid var(--orange-pale);
+    letter-spacing: 0.04em;
+}
+
+/* Steps list */
+.modal-steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.modal-steps li {
+    position: relative;
+    padding: 0.9rem 1rem 0.9rem 0;
+    color: var(--ink);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    border-bottom: 1px solid var(--line-soft);
+    transition: background 0.2s ease;
+}
+
+.modal-steps li:last-child {
+    border-bottom: none;
+}
+
+.modal-steps li:hover {
+    background: rgba(217, 122, 61, 0.04);
+    border-radius: 10px;
+    padding-left: 0.5rem;
+}
+
+.step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--orange);
+    color: #fffbef;
+    font-family: 'Fraunces', var(--font-serif-en);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px var(--bg-paper), 0 0 0 4px var(--orange-pale);
+    margin-top: 0.1rem;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalSlideUp {
+    from { opacity: 0; transform: translateY(30px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 @media (max-width: 600px) {
     .app-container { padding: 3rem 1.2rem 4rem; }
     .hero h1 { font-size: 2.2rem; }
     .glass-panel { padding: 1.8rem 1.4rem; }
+    .modal-overlay { padding: 1rem; }
+    .modal-card { max-height: 85vh; border-radius: 18px; }
+    .modal-header { padding: 1.5rem 1.5rem 1rem; }
+    .modal-body { padding: 1.2rem 1.5rem 1.5rem; }
+    .modal-title { font-size: 1.3rem; }
 }
+

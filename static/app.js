@@ -28,6 +28,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const fallbackTitle = document.getElementById('fallback-title');
     const fallbackSuggestions = document.getElementById('fallback-suggestions');
 
+    // Modal elements
+    const modalOverlay = document.getElementById('recipe-modal');
+    const modalCloseBtn = document.getElementById('modal-close-btn');
+    const modalName = document.getElementById('modal-recipe-name');
+    const modalMeta = document.getElementById('modal-recipe-meta');
+    const modalIngredients = document.getElementById('modal-ingredients');
+    const modalSteps = document.getElementById('modal-steps');
+
     // --- Events ---
     sliderEl.addEventListener('input', (e) => {
         const val = e.target.value;
@@ -46,6 +54,34 @@ document.addEventListener('DOMContentLoaded', () => {
     customApplianceInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') addCustomAppliance();
     });
+
+    modalCloseBtn.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modalOverlay.classList.contains('hidden')) closeModal();
+    });
+
+    // --- Modal ---
+    function openModal(recipe) {
+        modalName.textContent = recipe.name;
+        modalMeta.innerHTML = `
+            <span><i class="fa-regular fa-clock"></i> ${recipe.cook_time ? recipe.cook_time + ' 分鐘' : '—'}</span>
+            <span><i class="fa-solid fa-kitchen-set"></i> ${recipe.required_appliances.join(', ') || '無需求'}</span>
+        `;
+        modalIngredients.innerHTML = (recipe.ingredients || [])
+            .map(ing => `<li>${ing}</li>`).join('');
+        modalSteps.innerHTML = (recipe.steps || [])
+            .map((step, i) => `<li><span class="step-num">${String(i + 1).padStart(2, '0')}</span>${step}</li>`).join('');
+        modalOverlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        modalOverlay.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
 
     // --- Functions ---
     function addIngredient() {
@@ -188,6 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const card = document.createElement('div');
                 card.className = 'recipe-card';
                 card.style.animationDelay = `${i * 0.1}s`;
+                card.style.cursor = 'pointer';
                 
                 card.innerHTML = `
                     <div class="recipe-img-placeholder"><i class="fa-solid fa-utensils"></i></div>
@@ -198,8 +235,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span><i class="fa-regular fa-clock"></i> ${r.cook_time ? r.cook_time + ' 分鐘' : '-'}</span>
                             <span><i class="fa-solid fa-kitchen-set"></i> ${r.required_appliances.filter(a => a).length > 0 ? r.required_appliances.join(', ') : '無需求'}</span>
                         </div>
+                        <div class="card-hint"><i class="fa-solid fa-hand-pointer"></i> 點擊查看做法</div>
                     </div>
                 `;
+                card.addEventListener('click', () => openModal(r));
                 gridEl.appendChild(card);
             });
 
