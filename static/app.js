@@ -16,7 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const sliderValEl = document.getElementById('tolerance-val');
     const sliderHelpEl = document.getElementById('tolerance-help');
     const searchBtn = document.getElementById('search-btn');
-    
+    const applianceGroup = document.getElementById('appliance-group');
+    const customApplianceInput = document.getElementById('custom-appliance-input');
+    const addApplianceBtn = document.getElementById('add-appliance-btn');
+    const applianceStatus = document.getElementById('appliance-status');
+
     const resultsSection = document.getElementById('results-section');
     const errorMsg = document.getElementById('error-message');
     const gridEl = document.getElementById('recipes-grid');
@@ -37,6 +41,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     searchBtn.addEventListener('click', fetchRecommendations);
+
+    addApplianceBtn.addEventListener('click', addCustomAppliance);
+    customApplianceInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addCustomAppliance();
+    });
 
     // --- Functions ---
     function addIngredient() {
@@ -70,6 +79,65 @@ document.addEventListener('DOMContentLoaded', () => {
                 removeIngredient(parseInt(e.target.dataset.index));
             });
         });
+    }
+
+    function applianceExists(value) {
+        return Array.from(document.querySelectorAll('input[name="appliance"]'))
+            .some(cb => cb.value === value);
+    }
+
+    function addApplianceToggle(value, checked = true) {
+        const label = document.createElement('label');
+        label.className = 'toggle-btn';
+        label.innerHTML = `
+            <input type="checkbox" name="appliance" value="${value}" ${checked ? 'checked' : ''}>
+            <span class="toggle-content"><i class="fa-solid fa-kitchen-set"></i> ${value}</span>
+        `;
+        applianceGroup.appendChild(label);
+    }
+
+    async function addCustomAppliance() {
+        const val = (customApplianceInput.value || '').trim();
+        if (!val) return;
+
+        if (applianceExists(val)) {
+            applianceStatus.textContent = `「${val}」已存在於清單中。`;
+            customApplianceInput.value = '';
+            return;
+        }
+
+        addApplianceBtn.disabled = true;
+        applianceStatus.textContent = `正在請 AI 為「${val}」生成菜譜… (約需 10 秒)`;
+
+        try {
+            const response = await fetch('/appliance/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ appliance: val })
+            });
+            const data = await response.json();
+
+            if (data.error) {
+                applianceStatus.textContent = `失敗：${data.error}`;
+                return;
+            }
+
+            addApplianceToggle(val, true);
+            customApplianceInput.value = '';
+
+            if (data.skipped) {
+                applianceStatus.textContent = data.message || `已加入「${val}」。`;
+            } else if (data.added > 0) {
+                applianceStatus.textContent = `已為「${val}」生成 ${data.added} 道菜譜：${(data.recipes || []).join('、')}`;
+            } else {
+                applianceStatus.textContent = `已加入「${val}」，但未產生任何菜譜。`;
+            }
+        } catch (err) {
+            console.error(err);
+            applianceStatus.textContent = '系統發生錯誤，請稍後再試。';
+        } finally {
+            addApplianceBtn.disabled = false;
+        }
     }
 
     async function fetchRecommendations() {

@@ -8,3 +8,9 @@ venv/
 .vercel
 .DS_Store
 demo_video.mp4
+*.log
+.vscode/
+.idea/
+.pytest_cache/
+*.sqlite
+*.db

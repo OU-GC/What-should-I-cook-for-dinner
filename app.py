@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, jsonify
 from engine.models import User
 from engine.recommender import RecommendationEngine
 from engine.storage import RecipeStorage
+from engine.recipe_generator import RecipeGenerator
 
 try:
     from dotenv import load_dotenv
@@ -29,6 +30,9 @@ def load_json(filename):
 
 config = load_json('config.json')
 storage = RecipeStorage()
+recipe_generator = RecipeGenerator()
+
+DEFAULT_APPLIANCES = {"快煮鍋", "平底鍋", "微波爐", "明火瓦斯爐"}
 
 CACHE_TTL_SECONDS = 60
 _engine_cache = {'engine': None, 'expires_at': 0.0}
@@ -39,6 +43,10 @@ def get_engine() -> RecommendationEngine:
         _engine_cache['engine'] = RecommendationEngine(config, storage.list_all())
         _engine_cache['expires_at'] = now + CACHE_TTL_SECONDS
     return _engine_cache['engine']
+
+def invalidate_engine_cache() -> None:
+    _engine_cache['engine'] = None
+    _engine_cache['expires_at'] = 0.0
 
 @app.route('/')
 def index():
@@ -114,6 +122,63 @@ def recommend():
         
     except Exception as e:
         return jsonify({"error": str(e), "recipes": []}), 500
+
+@app.route('/appliance/add', methods=['POST'])
+def add_appliance():
+    try:
+        data = request.json or {}
+        appliance = str(data.get('appliance', '')).strip()
+        if not appliance:
+            return jsonify({"error": "請提供廚具名稱", "added": 0}), 400
+
+        # Skip generation if the appliance is part of the default set.
+        if appliance in DEFAULT_APPLIANCES:
+            return jsonify({
+                "appliance": appliance,
+                "added": 0,
+                "skipped": True,
+                "message": "此廚具已是預設選項，無需追加菜譜。"
+            })
+
+        # Avoid duplicate generation if recipes already exist for this appliance.
+        existing = [
+            r for r in storage.list_all()
+            if appliance in (r.get('required_appliances') or [])
+        ]
+        if existing:
+            return jsonify({
+                "appliance": appliance,
+                "added": 0,
+                "skipped": True,
+                "message": f"資料庫中已有 {len(existing)} 道使用「{appliance}」的菜譜。"
+            })
+
+        try:
+            generated = recipe_generator.generate_for_appliance(appliance, count=3)
+        except RuntimeError as e:
+            return jsonify({"error": str(e), "added": 0}), 500
+        except Exception as e:
+            return jsonify({"error": f"產生菜譜時發生錯誤：{e}", "added": 0}), 500
+
+        added_names = []
+        for recipe in generated:
+            try:
+                storage.add(recipe)
+                added_names.append(recipe['name'])
+            except Exception:
+                # If a unique-name conflict or other DB error happens, skip silently.
+                continue
+
+        if added_names:
+            invalidate_engine_cache()
+
+        return jsonify({
+            "appliance": appliance,
+            "added": len(added_names),
+            "recipes": added_names,
+        })
+    except Exception as e:
+        return jsonify({"error": str(e), "added": 0}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)

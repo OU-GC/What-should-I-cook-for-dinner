@@ -134,7 +134,7 @@
 
                 <div class="setting-group">
                     <label class="section-label">我家廚房有的小幫手 ☉</label>
-                    <div class="checkbox-group">
+                    <div id="appliance-group" class="checkbox-group">
                         <label class="toggle-btn">
                             <input type="checkbox" name="appliance" value="快煮鍋">
                             <span class="toggle-content"><i class="fa-solid fa-bowl-food"></i> 快煮鍋</span>
@@ -152,6 +152,15 @@
                             <span class="toggle-content"><i class="fa-solid fa-fire"></i> 瓦斯爐</span>
                         </label>
                     </div>
+
+                    <div class="input-group" style="margin-top: 12px;">
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-kitchen-set input-icon"></i>
+                            <input type="text" id="custom-appliance-input" placeholder="想新增其他廚具？例如：氣炸鍋、電鍋…">
+                        </div>
+                        <button id="add-appliance-btn" class="btn primary"><i class="fa-solid fa-plus"></i> 追加</button>
+                    </div>
+                    <p class="help-text" id="appliance-status"></p>
                 </div>
 
                 <button id="search-btn" class="btn lg action-btn">
