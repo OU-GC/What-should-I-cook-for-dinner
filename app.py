@@ -1,6 +1,5 @@
 import json
 import os
-import threading
 import time
 from flask import Flask, render_template, request, jsonify
 from engine.models import User
@@ -50,11 +49,8 @@ def invalidate_engine_cache() -> None:
     _engine_cache['expires_at'] = 0.0
 
 REC_TIMES_THRESHOLD = 3
-_expand_lock = threading.Lock()
-_expand_in_progress = False
 
-def _expand_recipes_background() -> None:
-    global _expand_in_progress
+def _run_expansion() -> None:
     try:
         existing = storage.list_all()
         generated = recipe_generator.generate_from_existing(existing, count=3)
@@ -73,17 +69,6 @@ def _expand_recipes_background() -> None:
             invalidate_engine_cache()
     except Exception:
         pass
-    finally:
-        with _expand_lock:
-            _expand_in_progress = False
-
-def _trigger_expansion_if_needed() -> None:
-    global _expand_in_progress
-    with _expand_lock:
-        if _expand_in_progress:
-            return
-        _expand_in_progress = True
-    threading.Thread(target=_expand_recipes_background, daemon=True).start()
 
 def _record_recommendations(recipe_ids: list) -> None:
     triggered = False
@@ -96,7 +81,7 @@ def _record_recommendations(recipe_ids: list) -> None:
         except Exception:
             continue
     if triggered:
-        _trigger_expansion_if_needed()
+        _run_expansion()
 
 @app.route('/')
 def index():
@@ -158,11 +143,10 @@ def recommend():
         
         recommended_ids = [r['recipe_id'] for r in formatted_recipes]
         if recommended_ids:
-            threading.Thread(
-                target=_record_recommendations,
-                args=(recommended_ids,),
-                daemon=True,
-            ).start()
+            try:
+                _record_recommendations(recommended_ids)
+            except Exception:
+                pass
 
         # Fallsback when no recipes matched but valid input
         if not formatted_recipes and not response["error"]:
