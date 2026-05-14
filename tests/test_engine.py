@@ -67,9 +67,10 @@ class TestRecommendationEngine(unittest.TestCase):
         self.assertEqual(r1['recipe'].name, "高麗菜炒蛋")
         self.assertEqual(r1['missing_count'], 0)
         
-        r3 = next((r for r in recipes if r['recipe'].name == "蔥爆豬肉"), None)
-        self.assertIsNotNone(r3)
-        self.assertEqual(r3['missing_count'], 2) # missing 豬肉片, 蔥花
+        # 蔥爆豬肉 should be excluded: user has neither 豬肉片 nor 蔥花,
+        # so no user-provided ingredient matches the recipe.
+        names = [r['recipe'].name for r in recipes]
+        self.assertNotIn("蔥爆豬肉", names)
 
     def test_ac2_tolerance_slider(self):
         # Slider = 0

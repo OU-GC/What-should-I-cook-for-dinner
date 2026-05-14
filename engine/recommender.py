@@ -69,7 +69,11 @@ class RecommendationEngine:
             # 4. Score calculation
             non_standard_count = self.calculator.get_non_standard_count(normalized_reqs)
             match_count = self.calculator.get_match_count(normalized_reqs, available_ingredients)
-            
+
+            # 5. Must contain at least one user-provided ingredient
+            if match_count < 1:
+                continue
+
             score = (match_count / non_standard_count) if non_standard_count > 0 else 1.0
 
             results.append({
