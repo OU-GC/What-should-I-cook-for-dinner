@@ -40,30 +40,39 @@ class RecommendationEngine:
             if recipe:
                 self.recipes.append(recipe)
 
-    def get_recommendations(self, user: User, raw_ingredients: List[str]) -> Dict[str, Any]:
+    def get_recommendations(
+        self,
+        user: User,
+        raw_ingredients: List[str],
+        always_include_names: List[str] = None,
+    ) -> Dict[str, Any]:
         # Zero Input Prevention
         if not raw_ingredients or not [i for i in raw_ingredients if i.strip()]:
             return {"error": "請至少輸入一項食材", "recipes": []}
 
         # Normalize user input ingredients
         available_ingredients = self.normalizer.normalize_list(raw_ingredients)
-        
+
+        # Recipes whose name is listed here bypass the tolerance filter — used
+        # for freshly LLM-generated recipes tailored to the user's ingredients.
+        always_include = {n.strip().lower() for n in (always_include_names or [])}
+
         results = []
-        
+
         for recipe in self.recipes:
             # 1. Appliance Filter
             if not ApplianceFilter.is_valid(user, recipe):
                 continue
-            
+
             # Normalize recipe ingredients
             normalized_reqs = self.normalizer.normalize_list(recipe.ingredients)
-            
+
             # 2. Missing calculation
             missing_items = self.calculator.get_missing_ingredients(normalized_reqs, available_ingredients)
             missing_count = len(missing_items)
-            
+
             # 3. Tolerance filter
-            if missing_count > user.missing_tolerance:
+            if missing_count > user.missing_tolerance and recipe.name.strip().lower() not in always_include:
                 continue
                 
             # 4. Score calculation

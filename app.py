@@ -116,10 +116,10 @@ def _run_expansion() -> None:
         pass
 
 
-def _run_ingredient_expansion(ingredients: list) -> int:
+def _run_ingredient_expansion(ingredients: list) -> list:
     """Generate recipes that use the user's ingredients, attach images, save.
 
-    Returns number of recipes added. Failures are silent.
+    Returns the names of recipes added. Failures are silent.
     """
     try:
         existing = storage.list_all()
@@ -127,21 +127,21 @@ def _run_ingredient_expansion(ingredients: list) -> int:
             ingredients, existing, count=3,
         )
         existing_names = {r.get('name', '').strip().lower() for r in existing}
-        added = 0
+        added_names = []
         for recipe in generated:
             if recipe['name'].strip().lower() in existing_names:
                 continue
             try:
                 storage.add(_attach_image(recipe))
                 existing_names.add(recipe['name'].strip().lower())
-                added += 1
+                added_names.append(recipe['name'])
             except Exception:
                 continue
-        if added:
+        if added_names:
             invalidate_engine_cache()
-        return added
+        return added_names
     except Exception:
-        return 0
+        return []
 
 def _record_recommendations(recipe_ids: list) -> None:
     triggered = False
@@ -186,8 +186,14 @@ def recommend():
         # Trigger LLM expansion whenever fewer than MIN_RESULTS recipes match
         # the user's ingredients — including the zero-match case.
         if len(raw_results) < MIN_RESULTS and not result.get("error") and ingredients:
-            if _run_ingredient_expansion(ingredients) > 0:
-                result = get_engine().get_recommendations(user, ingredients)
+            added_names = _run_ingredient_expansion(ingredients)
+            if added_names:
+                # The freshly-generated recipes are tailored to the user's
+                # ingredients, so let them bypass the tolerance filter —
+                # otherwise they'd be hidden right after being created.
+                result = get_engine().get_recommendations(
+                    user, ingredients, always_include_names=added_names,
+                )
                 raw_results = result.get('recipes', [])
                 formatted_recipes = _format_recipes(raw_results)
 
