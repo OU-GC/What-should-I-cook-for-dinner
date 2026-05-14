@@ -256,7 +256,6 @@ def add_appliance():
                 "appliance": appliance,
                 "added": 0,
                 "skipped": True,
-                "message": "此廚具已是預設選項，無需追加菜譜。"
             })
 
         # Avoid duplicate generation if recipes already exist for this appliance.
@@ -269,7 +268,6 @@ def add_appliance():
                 "appliance": appliance,
                 "added": 0,
                 "skipped": True,
-                "message": f"資料庫中已有 {len(existing)} 道使用「{appliance}」的菜譜。"
             })
 
         try:
