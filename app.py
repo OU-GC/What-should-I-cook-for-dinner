@@ -93,6 +93,7 @@ def invalidate_engine_cache() -> None:
     _engine_cache['expires_at'] = 0.0
 
 REC_TIMES_THRESHOLD = 3
+MIN_RESULTS = 3
 
 def _run_expansion() -> None:
     try:
@@ -182,18 +183,13 @@ def recommend():
         raw_results = result.get('recipes', [])
         formatted_recipes = _format_recipes(raw_results)
 
-        # If no existing recipe actually uses any of the user's ingredients
-        # (e.g. the user typed something the DB has never seen), ask the LLM
-        # to invent recipes that USE those ingredients, then re-run.
-        any_real_match = any(r['match_count'] > 0 for r in raw_results)
-        if not any_real_match and not result.get("error") and ingredients:
+        # Trigger LLM expansion whenever fewer than MIN_RESULTS recipes match
+        # the user's ingredients — including the zero-match case.
+        if len(raw_results) < MIN_RESULTS and not result.get("error") and ingredients:
             if _run_ingredient_expansion(ingredients) > 0:
                 result = get_engine().get_recommendations(user, ingredients)
                 raw_results = result.get('recipes', [])
-                # After LLM expansion, prefer showing only dishes that actually
-                # use the user's ingredients; fall back to the full list if none.
-                matched = [r for r in raw_results if r['match_count'] > 0]
-                formatted_recipes = _format_recipes(matched or raw_results)
+                formatted_recipes = _format_recipes(raw_results)
 
         response = {
             "error": result.get("error"),
