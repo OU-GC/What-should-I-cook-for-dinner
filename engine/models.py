@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 @dataclass
 class User:
@@ -15,3 +15,5 @@ class Recipe:
     required_appliances: List[str]
     steps: List[str] = field(default_factory=list)
     cook_time: Optional[int] = None
+    image_url: Optional[str] = None
+    image_credit: Optional[Dict[str, Any]] = None

@@ -21,5 +21,7 @@ class DataValidator:
             ingredients=[str(i).strip() for i in data['ingredients'] if i],
             required_appliances=[str(a).strip() for a in data['required_appliances'] if a],
             steps=data.get('steps', []),
-            cook_time=data.get('cook_time')
+            cook_time=data.get('cook_time'),
+            image_url=data.get('image_url'),
+            image_credit=data.get('image_credit'),
         )

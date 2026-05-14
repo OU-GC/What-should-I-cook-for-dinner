@@ -6,6 +6,7 @@ from engine.models import User
 from engine.recommender import RecommendationEngine
 from engine.storage import RecipeStorage
 from engine.recipe_generator import RecipeGenerator
+from engine.unsplash import UnsplashClient
 
 try:
     from dotenv import load_dotenv
@@ -31,6 +32,49 @@ def load_json(filename):
 config = load_json('config.json')
 storage = RecipeStorage()
 recipe_generator = RecipeGenerator()
+unsplash_client = UnsplashClient()
+
+
+def _format_recipes(raw_results: list) -> list:
+    formatted = []
+    for r in raw_results:
+        recipe_obj = r['recipe']
+        if r['missing_count'] == 0:
+            missing_text = "可直接做🎉"
+            tag_class = "ready"
+        elif r['missing_count'] == 1:
+            missing_text = f"幾乎可以做，還缺 1 樣: {r['missing_items'][0]}"
+            tag_class = "almost"
+        else:
+            missing_text = f"還缺 {r['missing_count']} 樣: {', '.join(r['missing_items'])}"
+            tag_class = "missing"
+        formatted.append({
+            "recipe_id": recipe_obj.recipe_id,
+            "name": recipe_obj.name,
+            "cook_time": recipe_obj.cook_time,
+            "steps": recipe_obj.steps,
+            "required_appliances": recipe_obj.required_appliances,
+            "ingredients": recipe_obj.ingredients,
+            "image_url": recipe_obj.image_url,
+            "image_credit": recipe_obj.image_credit,
+            "tag_text": missing_text,
+            "tag_class": tag_class,
+            "score": r['score']
+        })
+    return formatted
+
+
+def _attach_image(recipe: dict) -> dict:
+    """Fetch an Unsplash image for a freshly-generated recipe.
+
+    Mutates and returns the recipe dict. Failures are silent — image is optional.
+    """
+    query = recipe.get('image_query') or recipe.get('name')
+    photo = unsplash_client.search_photo(query) if query else None
+    if photo:
+        recipe['image_url'] = photo['url']
+        recipe['image_credit'] = photo['credit']
+    return recipe
 
 DEFAULT_APPLIANCES = {"快煮鍋", "平底鍋", "微波爐", "明火瓦斯爐"}
 
@@ -60,7 +104,7 @@ def _run_expansion() -> None:
             if recipe['name'].strip().lower() in existing_names:
                 continue
             try:
-                storage.add(recipe)
+                storage.add(_attach_image(recipe))
                 existing_names.add(recipe['name'].strip().lower())
                 added += 1
             except Exception:
@@ -69,6 +113,34 @@ def _run_expansion() -> None:
             invalidate_engine_cache()
     except Exception:
         pass
+
+
+def _run_ingredient_expansion(ingredients: list) -> int:
+    """Generate recipes that use the user's ingredients, attach images, save.
+
+    Returns number of recipes added. Failures are silent.
+    """
+    try:
+        existing = storage.list_all()
+        generated = recipe_generator.generate_for_ingredients(
+            ingredients, existing, count=3,
+        )
+        existing_names = {r.get('name', '').strip().lower() for r in existing}
+        added = 0
+        for recipe in generated:
+            if recipe['name'].strip().lower() in existing_names:
+                continue
+            try:
+                storage.add(_attach_image(recipe))
+                existing_names.add(recipe['name'].strip().lower())
+                added += 1
+            except Exception:
+                continue
+        if added:
+            invalidate_engine_cache()
+        return added
+    except Exception:
+        return 0
 
 def _record_recommendations(recipe_ids: list) -> None:
     triggered = False
@@ -107,34 +179,22 @@ def recommend():
         )
         
         result = get_engine().get_recommendations(user, ingredients)
-        
-        formatted_recipes = []
-        for r in result.get('recipes', []):
-            recipe_obj = r['recipe']
-            
-            missing_text = ""
-            if r['missing_count'] == 0:
-                missing_text = "可直接做🎉"
-                tag_class = "ready"
-            elif r['missing_count'] == 1:
-                missing_text = f"幾乎可以做，還缺 1 樣: {r['missing_items'][0]}"
-                tag_class = "almost"
-            else:
-                missing_text = f"還缺 {r['missing_count']} 樣: {', '.join(r['missing_items'])}"
-                tag_class = "missing"
-                
-            formatted_recipes.append({
-                "recipe_id": recipe_obj.recipe_id,
-                "name": recipe_obj.name,
-                "cook_time": recipe_obj.cook_time,
-                "steps": recipe_obj.steps,
-                "required_appliances": recipe_obj.required_appliances,
-                "ingredients": recipe_obj.ingredients,
-                "tag_text": missing_text,
-                "tag_class": tag_class,
-                "score": r['score']
-            })
-            
+        raw_results = result.get('recipes', [])
+        formatted_recipes = _format_recipes(raw_results)
+
+        # If no existing recipe actually uses any of the user's ingredients
+        # (e.g. the user typed something the DB has never seen), ask the LLM
+        # to invent recipes that USE those ingredients, then re-run.
+        any_real_match = any(r['match_count'] > 0 for r in raw_results)
+        if not any_real_match and not result.get("error") and ingredients:
+            if _run_ingredient_expansion(ingredients) > 0:
+                result = get_engine().get_recommendations(user, ingredients)
+                raw_results = result.get('recipes', [])
+                # After LLM expansion, prefer showing only dishes that actually
+                # use the user's ingredients; fall back to the full list if none.
+                matched = [r for r in raw_results if r['match_count'] > 0]
+                formatted_recipes = _format_recipes(matched or raw_results)
+
         response = {
             "error": result.get("error"),
             "recipes": formatted_recipes,
@@ -204,7 +264,7 @@ def add_appliance():
         added_names = []
         for recipe in generated:
             try:
-                storage.add(recipe)
+                storage.add(_attach_image(recipe))
                 added_names.append(recipe['name'])
             except Exception:
                 # If a unique-name conflict or other DB error happens, skip silently.
@@ -236,7 +296,7 @@ def expand_recipes():
         added_names = []
         for recipe in generated:
             try:
-                storage.add(recipe)
+                storage.add(_attach_image(recipe))
                 added_names.append(recipe['name'])
             except Exception:
                 continue

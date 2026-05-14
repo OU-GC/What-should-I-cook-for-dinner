@@ -821,6 +821,31 @@ input[type="text"]:focus ~ .input-icon,
     background: linear-gradient(135deg, #ffe8cc, var(--orange-pale));
 }
 
+.recipe-img {
+    height: 160px;
+    width: 100%;
+    object-fit: cover;
+    display: block;
+    border-bottom: 1px solid var(--line);
+    transition: var(--transition);
+}
+
+.recipe-card:hover .recipe-img {
+    transform: scale(1.03);
+}
+
+.image-credit {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.75rem;
+    text-align: right;
+}
+
+.image-credit a {
+    color: var(--text-muted);
+    text-decoration: underline;
+}
+
 .recipe-content {
     padding: 1.6rem 1.5rem 1.4rem;
     flex: 1;

@@ -40,7 +40,7 @@ class RecipeStorage:
         with self._connect() as conn, conn.cursor() as cur:
             cur.execute("""
                 SELECT recipe_id, name, ingredients, required_appliances,
-                       steps, cook_time
+                       steps, cook_time, image_url, image_credit, image_query
                 FROM recipes
                 ORDER BY recipe_id
             """)
@@ -52,14 +52,18 @@ class RecipeStorage:
             'required_appliances': r[3] or [],
             'steps': r[4] or [],
             'cook_time': r[5],
+            'image_url': r[6],
+            'image_credit': r[7],
+            'image_query': r[8],
         } for r in rows]
 
     def add(self, recipe: Dict[str, Any]) -> str:
         with self._connect() as conn, conn.cursor() as cur:
             cur.execute("""
                 INSERT INTO recipes
-                    (name, ingredients, required_appliances, steps, cook_time)
-                VALUES (%s, %s, %s, %s, %s)
+                    (name, ingredients, required_appliances, steps, cook_time,
+                     image_url, image_credit, image_query)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING recipe_id
             """, (
                 recipe['name'],
@@ -67,6 +71,9 @@ class RecipeStorage:
                 Jsonb(recipe.get('required_appliances', [])),
                 Jsonb(recipe.get('steps', [])),
                 recipe.get('cook_time'),
+                recipe.get('image_url'),
+                Jsonb(recipe['image_credit']) if recipe.get('image_credit') else None,
+                recipe.get('image_query'),
             ))
             new_id = cur.fetchone()[0]
             conn.commit()
@@ -77,8 +84,8 @@ class RecipeStorage:
             cur.execute("""
                 INSERT INTO recipes
                     (recipe_id, name, ingredients, required_appliances,
-                     steps, cook_time)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                     steps, cook_time, image_url, image_credit, image_query)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (recipe_id) DO NOTHING
                 RETURNING recipe_id
             """, (
@@ -88,10 +95,51 @@ class RecipeStorage:
                 Jsonb(recipe.get('required_appliances', [])),
                 Jsonb(recipe.get('steps', [])),
                 recipe.get('cook_time'),
+                recipe.get('image_url'),
+                Jsonb(recipe['image_credit']) if recipe.get('image_credit') else None,
+                recipe.get('image_query'),
             ))
             row = cur.fetchone()
             conn.commit()
         return str(row[0]) if row else ''
+
+    def update_image(
+        self,
+        recipe_id: str,
+        image_url: Optional[str],
+        image_credit: Optional[Dict[str, Any]],
+        image_query: Optional[str],
+    ) -> None:
+        with self._connect() as conn, conn.cursor() as cur:
+            cur.execute("""
+                UPDATE recipes
+                SET image_url    = %s,
+                    image_credit = %s,
+                    image_query  = %s
+                WHERE recipe_id = %s
+            """, (
+                image_url,
+                Jsonb(image_credit) if image_credit else None,
+                image_query,
+                int(recipe_id),
+            ))
+            conn.commit()
+
+    def list_without_image(self) -> List[Dict[str, Any]]:
+        """Recipes that still need an image fetched (used by backfill)."""
+        with self._connect() as conn, conn.cursor() as cur:
+            cur.execute("""
+                SELECT recipe_id, name, ingredients
+                FROM recipes
+                WHERE image_url IS NULL
+                ORDER BY recipe_id
+            """)
+            rows = cur.fetchall()
+        return [{
+            'recipe_id': str(r[0]),
+            'name': r[1],
+            'ingredients': r[2] or [],
+        } for r in rows]
 
     def increment_rec_times(self, recipe_id: str) -> int:
         with self._connect() as conn, conn.cursor() as cur:

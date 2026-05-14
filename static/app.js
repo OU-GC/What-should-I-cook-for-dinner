@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalMeta = document.getElementById('modal-recipe-meta');
     const modalIngredients = document.getElementById('modal-ingredients');
     const modalSteps = document.getElementById('modal-steps');
+    const modalImageCredit = document.getElementById('modal-image-credit');
 
     // --- Events ---
     sliderEl.addEventListener('input', (e) => {
@@ -74,6 +75,18 @@ document.addEventListener('DOMContentLoaded', () => {
             .map(ing => `<li>${ing}</li>`).join('');
         modalSteps.innerHTML = (recipe.steps || [])
             .map((step, i) => `<li><span class="step-num">${String(i + 1).padStart(2, '0')}</span>${step}</li>`).join('');
+
+        const credit = recipe.image_credit;
+        if (credit && credit.photographer) {
+            const photographer = credit.photographer_url
+                ? `<a href="${credit.photographer_url}?utm_source=what_to_cook&utm_medium=referral" target="_blank" rel="noopener">${credit.photographer}</a>`
+                : credit.photographer;
+            modalImageCredit.innerHTML =
+                `Photo by ${photographer} on <a href="https://unsplash.com/?utm_source=what_to_cook&utm_medium=referral" target="_blank" rel="noopener">Unsplash</a>`;
+        } else {
+            modalImageCredit.innerHTML = '';
+        }
+
         modalOverlay.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     }
@@ -127,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
         label.className = 'toggle-btn';
         label.innerHTML = `
             <input type="checkbox" name="appliance" value="${value}" ${checked ? 'checked' : ''}>
-            <span class="toggle-content"><i class="fa-solid fa-kitchen-set"></i> ${value}</span>
+            <span class="toggle-content">${value}</span>
         `;
         applianceGroup.appendChild(label);
     }
@@ -226,8 +239,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.style.animationDelay = `${i * 0.1}s`;
                 card.style.cursor = 'pointer';
                 
+                const placeholderHtml = `<div class="recipe-img-placeholder"><i class="fa-solid fa-utensils"></i></div>`;
+                const imageHtml = r.image_url
+                    ? `<img class="recipe-img" src="${r.image_url}" alt="${r.name}" loading="lazy">`
+                    : placeholderHtml;
+
                 card.innerHTML = `
-                    <div class="recipe-img-placeholder"><i class="fa-solid fa-utensils"></i></div>
+                    ${imageHtml}
                     <div class="recipe-content">
                         <span class="status-tag ${r.tag_class}">${r.tag_text}</span>
                         <h3 class="recipe-title">${r.name}</h3>
@@ -238,6 +256,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="card-hint"><i class="fa-solid fa-hand-pointer"></i> 點擊查看做法</div>
                     </div>
                 `;
+
+                const imgEl = card.querySelector('img.recipe-img');
+                if (imgEl) {
+                    imgEl.addEventListener('error', () => {
+                        imgEl.outerHTML = placeholderHtml;
+                    });
+                }
+
                 card.addEventListener('click', () => openModal(r));
                 gridEl.appendChild(card);
             });
