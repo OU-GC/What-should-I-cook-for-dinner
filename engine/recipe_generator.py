@@ -216,6 +216,7 @@ class RecipeGenerator:
         ingredients: List[str],
         existing_recipes: List[Dict[str, Any]],
         count: int = 3,
+        appliances: List[str] = None,
     ) -> List[Dict[str, Any]]:
         ingredients = [i.strip() for i in (ingredients or []) if i and i.strip()]
         if not ingredients:
@@ -223,8 +224,16 @@ class RecipeGenerator:
 
         client = self._client()
         existing_names = [r.get('name', '') for r in existing_recipes if r.get('name')]
+        appliances = [a.strip() for a in (appliances or []) if a and a.strip()]
         user_prompt = (
             f"使用者目前擁有的食材：{json.dumps(ingredients, ensure_ascii=False)}\n"
+        )
+        if appliances:
+            user_prompt += (
+                f"使用者擁有的廚具：{json.dumps(appliances, ensure_ascii=False)}\n"
+                f"每道菜的 required_appliances 只能使用上述廚具，不可使用其他廚具。\n"
+            )
+        user_prompt += (
             f"資料庫中已有的菜名（不可重複）：{json.dumps(existing_names, ensure_ascii=False)}\n"
             f"請依照規則，生成 {count} 道善用這些食材的家常菜譜。"
         )

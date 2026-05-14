@@ -116,15 +116,17 @@ def _run_expansion() -> None:
         pass
 
 
-def _run_ingredient_expansion(ingredients: list) -> list:
+def _run_ingredient_expansion(ingredients: list, appliances: list = None) -> list:
     """Generate recipes that use the user's ingredients, attach images, save.
 
+    When appliances are given, generated recipes are constrained to those
+    appliances so they survive the recommendation appliance filter.
     Returns the names of recipes added. Failures are silent.
     """
     try:
         existing = storage.list_all()
         generated = recipe_generator.generate_for_ingredients(
-            ingredients, existing, count=3,
+            ingredients, existing, count=3, appliances=appliances,
         )
         existing_names = {r.get('name', '').strip().lower() for r in existing}
         added_names = []
@@ -183,19 +185,33 @@ def recommend():
         raw_results = result.get('recipes', [])
         formatted_recipes = _format_recipes(raw_results)
 
-        # Trigger LLM expansion whenever fewer than MIN_RESULTS recipes match
-        # the user's ingredients — including the zero-match case.
+        # The recommendation list must not be shorter than MIN_RESULTS.
+        # Trigger LLM expansion whenever fewer recipes match the user's
+        # ingredients — including the zero-match case.
         if len(raw_results) < MIN_RESULTS and not result.get("error") and ingredients:
-            added_names = _run_ingredient_expansion(ingredients)
-            if added_names:
+            all_added = _run_ingredient_expansion(ingredients)
+            if all_added:
                 # The freshly-generated recipes are tailored to the user's
                 # ingredients, so let them bypass the tolerance filter —
                 # otherwise they'd be hidden right after being created.
                 result = get_engine().get_recommendations(
-                    user, ingredients, always_include_names=added_names,
+                    user, ingredients, always_include_names=all_added,
                 )
                 raw_results = result.get('recipes', [])
-                formatted_recipes = _format_recipes(raw_results)
+
+            # Still short after the first expansion — expand once more, this
+            # time constraining generated recipes to the user's own appliances
+            # and ingredients so they survive the appliance filter.
+            if len(raw_results) < MIN_RESULTS:
+                retry_added = _run_ingredient_expansion(ingredients, appliances)
+                if retry_added:
+                    all_added.extend(retry_added)
+                    result = get_engine().get_recommendations(
+                        user, ingredients, always_include_names=all_added,
+                    )
+                    raw_results = result.get('recipes', [])
+
+            formatted_recipes = _format_recipes(raw_results)
 
         response = {
             "error": result.get("error"),
