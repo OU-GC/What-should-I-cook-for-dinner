@@ -24,4 +24,5 @@ class DataValidator:
             cook_time=data.get('cook_time'),
             image_url=data.get('image_url'),
             image_credit=data.get('image_credit'),
+            image_query=data.get('image_query'),
         )

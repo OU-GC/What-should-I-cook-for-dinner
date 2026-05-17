@@ -17,3 +17,4 @@ class Recipe:
     cook_time: Optional[int] = None
     image_url: Optional[str] = None
     image_credit: Optional[Dict[str, Any]] = None
+    image_query: Optional[str] = None

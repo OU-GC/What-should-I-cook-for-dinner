@@ -57,6 +57,7 @@ def _format_recipes(raw_results: list) -> list:
             "ingredients": recipe_obj.ingredients,
             "image_url": recipe_obj.image_url,
             "image_credit": recipe_obj.image_credit,
+            "image_query": recipe_obj.image_query,
             "tag_text": missing_text,
             "tag_class": tag_class,
             "score": r['score']
@@ -75,6 +76,58 @@ def _attach_image(recipe: dict) -> dict:
         recipe['image_url'] = photo['url']
         recipe['image_credit'] = photo['credit']
     return recipe
+
+
+def _ensure_images(formatted: list) -> bool:
+    """Synchronously fetch+persist Unsplash images for any recommended recipe
+    missing one. Mutates `formatted` in place.
+
+    Policy: always re-fetch when image_url IS NULL, even if a previous attempt
+    set image_query without finding a photo. Reuses image_query from DB to
+    skip LLM translation; otherwise batch-translates names via LLM.
+
+    Returns True if any DB row was updated (caller should invalidate engine cache).
+    """
+    if not unsplash_client.access_key:
+        return False
+
+    missing = [r for r in formatted if not r.get('image_url')]
+    if not missing:
+        return False
+
+    need_translation = [
+        {'name': r['name'], 'ingredients': r.get('ingredients', [])}
+        for r in missing if not r.get('image_query')
+    ]
+    queries: dict = {}
+    if need_translation:
+        try:
+            queries = recipe_generator.generate_image_queries(need_translation)
+        except Exception:
+            queries = {}
+
+    persisted = False
+    for r in missing:
+        query = r.get('image_query') or queries.get(r['name']) or r['name']
+        try:
+            photo = unsplash_client.search_photo(query)
+        except Exception:
+            photo = None
+        try:
+            if photo:
+                storage.update_image(r['recipe_id'], photo['url'], photo['credit'], query)
+                r['image_url'] = photo['url']
+                r['image_credit'] = photo['credit']
+                r['image_query'] = query
+                persisted = True
+            else:
+                storage.update_image(r['recipe_id'], None, None, query)
+                r['image_query'] = query
+                persisted = True
+        except Exception:
+            continue
+
+    return persisted
 
 DEFAULT_APPLIANCES = {"快煮鍋", "平底鍋", "微波爐", "明火瓦斯爐"}
 
@@ -212,6 +265,15 @@ def recommend():
                     raw_results = result.get('recipes', [])
 
             formatted_recipes = _format_recipes(raw_results)
+
+        # Backfill missing Unsplash images synchronously so the frontend never
+        # renders a recommended recipe with an empty image slot when one could
+        # be fetched. Mutates formatted_recipes in place.
+        try:
+            if _ensure_images(formatted_recipes):
+                invalidate_engine_cache()
+        except Exception:
+            pass
 
         response = {
             "error": result.get("error"),
