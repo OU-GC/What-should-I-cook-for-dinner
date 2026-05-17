@@ -71,16 +71,18 @@ class RecommendationEngine:
             missing_items = self.calculator.get_missing_ingredients(normalized_reqs, available_ingredients)
             missing_count = len(missing_items)
 
+            is_always_include = recipe.name.strip().lower() in always_include
+
             # 3. Tolerance filter
-            if missing_count > user.missing_tolerance and recipe.name.strip().lower() not in always_include:
+            if missing_count > user.missing_tolerance and not is_always_include:
                 continue
-                
+
             # 4. Score calculation
             non_standard_count = self.calculator.get_non_standard_count(normalized_reqs)
             match_count = self.calculator.get_match_count(normalized_reqs, available_ingredients)
 
-            # 5. Must contain at least one user-provided ingredient
-            if match_count < 1:
+            # 5. 使用者命中的食材數須不少於缺料數，避免只共用 1 樣配料的不相干菜譜
+            if not is_always_include and (match_count < 1 or match_count < missing_count):
                 continue
 
             score = (match_count / non_standard_count) if non_standard_count > 0 else 1.0
