@@ -73,8 +73,9 @@ class RecommendationEngine:
 
             is_always_include = recipe.name.strip().lower() in always_include
 
-            # 3. Tolerance filter
-            if missing_count > user.missing_tolerance and not is_always_include:
+            # 3. Tolerance filter — user preference, no bypass even for
+            # always_include recipes
+            if missing_count > user.missing_tolerance:
                 continue
 
             # 4. Score calculation
