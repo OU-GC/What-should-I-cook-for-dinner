@@ -194,17 +194,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const invalidApp = Array.isArray(data.invalid_appliances) ? data.invalid_appliances : [];
         if (!invalidIng.length && !invalidApp.length) return;
 
-        const parts = [];
-        if (invalidIng.length) parts.push(`食材：${invalidIng.join('、')}`);
-        if (invalidApp.length) parts.push(`廚具：${invalidApp.join('、')}`);
+        const items = [];
+        if (invalidIng.length) items.push(`食材：${invalidIng.join('、')}`);
+        if (invalidApp.length) items.push(`廚具：${invalidApp.join('、')}`);
 
         const hint = data.expansion_skipped
             ? '食材或廚具不存在。請修正後再試一次。'
             : '以下輸入可能無法辨識，請確認是否拼寫正確。';
 
         invalidNotice.innerHTML =
-            `<strong><i class="fa-solid fa-circle-exclamation"></i> 偵測到無法辨識的輸入</strong><br>` +
-            parts.join('；') +
+            `<div class="invalid-icon"><i class="fa-solid fa-circle-exclamation"></i></div>` +
+            `<strong>偵測到無法辨識的輸入</strong>` +
+            `<ul>${items.map(item => `<li>${item}</li>`).join('')}</ul>` +
             `<span class="invalid-hint">${hint}</span>`;
         invalidNotice.classList.remove('hidden');
     }

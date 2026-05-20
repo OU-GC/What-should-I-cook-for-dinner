@@ -312,7 +312,7 @@ def recommend():
         # Fallsback when no recipes matched but valid input
         if not formatted_recipes and not response["error"]:
             response["fallback"] = {
-                "message": "目前沒有完全符合的菜譜 😢",
+                "message": "目前沒有完全符合的菜譜",
                 "suggestions": [
                     "試著放寬「缺少食材容忍值」",
                     "輸入更多你擁有的食材",

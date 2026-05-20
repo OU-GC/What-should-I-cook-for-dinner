@@ -706,18 +706,54 @@ input[type="text"]:focus ~ .input-icon,
 }
 
 .invalid-notice {
-    border-left: 2px solid var(--accent);
+    text-align: center;
+    border: 1px dashed var(--line);
     background: var(--bg-paper);
     color: var(--ink);
-    padding: 1.1rem 1.6rem;
+    padding: 1.6rem 1.8rem;
     margin-bottom: 1.2rem;
     font-size: 0.95rem;
     line-height: 1.6;
 }
 
+.invalid-icon {
+    font-size: 1.8rem;
+    color: var(--accent-soft);
+    margin-bottom: 1rem;
+}
+
 .invalid-notice strong {
+    display: block;
+    color: var(--ink);
+    margin-bottom: 1.2rem;
+    font-size: 1.15rem;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+}
+
+.invalid-notice ul {
+    list-style: none;
+    text-align: left;
+    display: inline-block;
+    color: var(--ink-soft);
+    padding: 0;
+    margin: 0 0 1rem 0;
+}
+
+.invalid-notice li {
+    margin-bottom: 0.7rem;
+    position: relative;
+    padding-left: 1.5rem;
+    font-style: italic;
+    letter-spacing: 0.03em;
+}
+
+.invalid-notice li::before {
+    content: '—';
+    font-family: var(--font-serif-en);
+    position: absolute;
+    left: 0;
     color: var(--accent);
-    font-weight: 600;
 }
 
 .invalid-notice .invalid-hint {
