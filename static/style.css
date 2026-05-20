@@ -45,6 +45,11 @@
     padding: 0;
 }
 
+html {
+    overflow-x: hidden;
+    overscroll-behavior-y: none;
+}
+
 body {
     background-color: #fbf3e6;
     background-image:
@@ -56,7 +61,8 @@ body {
     font-weight: 400;
     line-height: 1.85;
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow-x: clip;
+    overscroll-behavior-y: none;
     position: relative;
     letter-spacing: 0.02em;
 }
