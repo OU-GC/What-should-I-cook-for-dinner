@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (invalidApp.length) parts.push(`廚具：${invalidApp.join('、')}`);
 
         const hint = data.expansion_skipped
-            ? '為避免生出不合理的菜譜，已略過 LLM 擴充。請修正後再試一次。'
+            ? '食材或廚具不存在。請修正後再試一次。'
             : '以下輸入可能無法辨識，請確認是否拼寫正確。';
 
         invalidNotice.innerHTML =
