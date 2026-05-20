@@ -40,10 +40,10 @@ def _format_recipes(raw_results: list) -> list:
     for r in raw_results:
         recipe_obj = r['recipe']
         if r['missing_count'] == 0:
-            missing_text = "可直接做🎉"
+            missing_text = "可直接做"
             tag_class = "ready"
         elif r['missing_count'] == 1:
-            missing_text = f"幾乎可以做，還缺 1 樣: {r['missing_items'][0]}"
+            missing_text = f"還缺 1 樣: {r['missing_items'][0]}"
             tag_class = "almost"
         else:
             missing_text = f"還缺 {r['missing_count']} 樣: {', '.join(r['missing_items'])}"
