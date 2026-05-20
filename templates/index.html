@@ -125,10 +125,27 @@
 
                 <div class="setting-group margin-bottom-lg">
                     <div class="slider-header">
-                        <label for="tolerance-slider">最多可以缺幾樣食材呢？</label>
+                        <label>最多可以缺幾樣食材呢？</label>
                         <span class="badge"><span id="tolerance-val">1</span> 樣</span>
                     </div>
-                    <input type="range" class="custom-slider" id="tolerance-slider" min="0" max="3" value="1">
+                    <div id="tolerance-group" class="tolerance-group">
+                        <label class="toggle-btn tolerance-btn">
+                            <input type="radio" name="tolerance" value="0">
+                            <span class="toggle-content">0</span>
+                        </label>
+                        <label class="toggle-btn tolerance-btn">
+                            <input type="radio" name="tolerance" value="1" checked>
+                            <span class="toggle-content">1</span>
+                        </label>
+                        <label class="toggle-btn tolerance-btn">
+                            <input type="radio" name="tolerance" value="2">
+                            <span class="toggle-content">2</span>
+                        </label>
+                        <label class="toggle-btn tolerance-btn">
+                            <input type="radio" name="tolerance" value="3">
+                            <span class="toggle-content">3</span>
+                        </label>
+                    </div>
                     <p class="help-text" id="tolerance-help">願意補買 1 樣</p>
                 </div>
 

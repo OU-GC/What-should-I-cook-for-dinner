@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputEl = document.getElementById('ingredient-input');
     const addBtn = document.getElementById('add-ingredient-btn');
     const tagsContainer = document.getElementById('ingredient-tags');
-    const sliderEl = document.getElementById('tolerance-slider');
+    const toleranceGroup = document.getElementById('tolerance-group');
     const sliderValEl = document.getElementById('tolerance-val');
     const sliderHelpEl = document.getElementById('tolerance-help');
     const searchBtn = document.getElementById('search-btn');
@@ -38,11 +38,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalImageCredit = document.getElementById('modal-image-credit');
 
     // --- Events ---
-    sliderEl.addEventListener('input', (e) => {
+    toleranceGroup.addEventListener('change', (e) => {
+        if (e.target.name !== 'tolerance') return;
         const val = e.target.value;
         sliderValEl.textContent = val;
         sliderHelpEl.textContent = sliderTexts[val];
     });
+
+    function getTolerance() {
+        const checked = toleranceGroup.querySelector('input[name="tolerance"]:checked');
+        return checked ? parseInt(checked.value, 10) : 1;
+    }
 
     addBtn.addEventListener('click', addIngredient);
     inputEl.addEventListener('keypress', (e) => {
@@ -186,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Gathering checked appliances
         const checkboxes = document.querySelectorAll('input[name="appliance"]:checked');
         const appliances = Array.from(checkboxes).map(cb => cb.value);
-        const tolerance = parseInt(sliderEl.value, 10);
+        const tolerance = getTolerance();
 
         // Hide old results
         resultsSection.classList.remove('hidden');
