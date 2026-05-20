@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.querySelectorAll('.tag-remove').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                removeIngredient(parseInt(e.target.dataset.index));
+                removeIngredient(parseInt(e.currentTarget.dataset.index));
             });
         });
     }
