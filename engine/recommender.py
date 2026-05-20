@@ -82,8 +82,10 @@ class RecommendationEngine:
             non_standard_count = self.calculator.get_non_standard_count(normalized_reqs)
             match_count = self.calculator.get_match_count(normalized_reqs, available_ingredients)
 
-            # 5. 使用者命中的食材數須不少於缺料數，避免只共用 1 樣配料的不相干菜譜
-            if not is_always_include and (match_count < 1 or match_count < missing_count):
+            # 5. 至少需用到 1 樣使用者食材（含 LLM 生成的 always_include 食譜），
+            #    避免推出與使用者輸入無關的菜譜；缺料上限交由 missing_tolerance
+            #    （步驟 3）控制。
+            if match_count < 1:
                 continue
 
             score = (match_count / non_standard_count) if non_standard_count > 0 else 1.0

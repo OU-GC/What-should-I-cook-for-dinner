@@ -103,9 +103,9 @@ class TestRecommendationEngine(unittest.TestCase):
         names = [r['recipe'].name for r in recipes]
         self.assertIn("烤地瓜", names) # bypass is active
 
-    def test_match_must_not_be_less_than_missing(self):
-        # 在 MOCK_RECIPES 之外加一道 4 樣非常備食材的菜，
-        # 使用者只命中 1 樣、缺 3 樣，雖然 tolerance=3 仍應被排除。
+    def test_tolerance_controls_missing_ceiling(self):
+        # 缺料上限完全由 missing_tolerance 控制：只要至少命中 1 樣使用者食材，
+        # 缺料數 ≤ tolerance 就應被推薦，不再要求 match ≥ missing。
         recipes = MOCK_RECIPES + [{
             "recipe_id": "5",
             "name": "牛肉燉菜",
@@ -114,16 +114,23 @@ class TestRecommendationEngine(unittest.TestCase):
         }]
         engine = RecommendationEngine(CONFIG, recipes)
 
-        # 只擁有洋蔥：命中 1、缺料 3 → 不該推薦
+        # 只擁有洋蔥：命中 1、缺料 3，tolerance=3 應被推薦
         user = User(user_id="u1", appliances=["快煮鍋", "平底鍋", "明火瓦斯爐"], missing_tolerance=3)
         res = engine.get_recommendations(user, ["洋蔥"])
         names = [r['recipe'].name for r in res['recipes']]
-        self.assertNotIn("牛肉燉菜", names)
+        self.assertIn("牛肉燉菜", names)
 
-        # 擁有洋蔥 + 紅蘿蔔 + 馬鈴薯：命中 3、缺料 1 → 應被推薦
-        res2 = engine.get_recommendations(user, ["洋蔥", "紅蘿蔔", "馬鈴薯"])
-        names2 = [r['recipe'].name for r in res2['recipes']]
-        self.assertIn("牛肉燉菜", names2)
+        # tolerance=2 時，缺 3 樣超出上限，應被排除
+        user_low = User(user_id="u1", appliances=["快煮鍋", "平底鍋", "明火瓦斯爐"], missing_tolerance=2)
+        res_low = engine.get_recommendations(user_low, ["洋蔥"])
+        names_low = [r['recipe'].name for r in res_low['recipes']]
+        self.assertNotIn("牛肉燉菜", names_low)
+
+        # 命中 0 樣（食譜完全不含使用者輸入食材）仍應被排除
+        res_zero = engine.get_recommendations(user, ["花椰菜"])
+        names_zero = [r['recipe'].name for r in res_zero['recipes']]
+        self.assertNotIn("牛肉燉菜", names_zero)
+        self.assertNotIn("水煮蛋", names_zero)
 
     def test_zero_input_prevention(self):
         # Edge Case 11.4
