@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const hint = data.expansion_skipped
             ? '食材或廚具不存在。請修正後再試一次。'
-            : '以下輸入可能無法辨識，請確認是否拼寫正確。';
+            : '食材或廚具不存在。請修正後再試一次。';
 
         invalidNotice.innerHTML =
             `<div class="invalid-icon"><i class="fa-solid fa-circle-exclamation"></i></div>` +

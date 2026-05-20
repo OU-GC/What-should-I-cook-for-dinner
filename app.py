@@ -356,6 +356,20 @@ def add_appliance():
                 "skipped": True,
             })
 
+        # Gate LLM generation behind a sanity check — nonsense like "時光機"
+        # would otherwise waste a generation call and pollute the recipe DB.
+        try:
+            validation = recipe_generator.validate_inputs([], [appliance])
+            invalid_apps = validation.get("invalid_appliances", [])
+        except Exception:
+            invalid_apps = []
+        if invalid_apps:
+            return jsonify({
+                "error": f"「{appliance}」不像是合理的廚具，請確認拼寫。",
+                "added": 0,
+                "invalid_appliance": appliance,
+            }), 400
+
         try:
             generated = recipe_generator.generate_for_appliance(appliance, count=3)
         except RuntimeError as e:
