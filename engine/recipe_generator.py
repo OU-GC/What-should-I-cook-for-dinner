@@ -139,6 +139,69 @@ class RecipeGenerator:
             existing_lower.add(name.lower())
         return cleaned
 
+    VALIDATE_SYSTEM_PROMPT = (
+        "你是一個輸入驗證助手。使用者會提供兩組詞彙：食材清單與廚具清單。"
+        "請判斷每個詞是否為真實、合理的家庭料理食材或廚具，將不合理的項目挑出。"
+        "不合理包含：非真實食材（例：龍肉、彩虹粉）、非真實廚具（例：時光機）、"
+        "無意義字串或亂碼（例：哈哈哈、asdf）、純標點符號等。"
+        "判斷時請寬鬆對待常見的台灣家庭食材／廚具用詞，包含口語、簡稱、地方稱呼。"
+        "請只輸出 JSON，格式為："
+        "{\"invalid_ingredients\": [...], \"invalid_appliances\": [...]}"
+        "其中陣列內容為原樣輸入詞彙，沒有不合理項目則回傳空陣列。"
+    )
+
+    def validate_inputs(
+        self,
+        ingredients: List[str],
+        appliances: List[str] = None,
+    ) -> Dict[str, List[str]]:
+        """Ask the LLM whether each ingredient / appliance is a real, sensible item.
+
+        Returns {"invalid_ingredients": [...], "invalid_appliances": [...]}.
+        Items echo the user's original input. Empty lists mean all-clear.
+        """
+        ingredients = [str(i).strip() for i in (ingredients or []) if str(i).strip()]
+        appliances = [str(a).strip() for a in (appliances or []) if str(a).strip()]
+        if not ingredients and not appliances:
+            return {"invalid_ingredients": [], "invalid_appliances": []}
+
+        client = self._client()
+        user_prompt = (
+            f"食材清單：{json.dumps(ingredients, ensure_ascii=False)}\n"
+            f"廚具清單：{json.dumps(appliances, ensure_ascii=False)}\n"
+            "請依規則判斷並回傳 JSON。"
+        )
+
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": self.VALIDATE_SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt},
+            ],
+            response_format={"type": "json_object"},
+            temperature=0,
+        )
+
+        content = response.choices[0].message.content or "{}"
+        data = json.loads(content)
+        if not isinstance(data, dict):
+            return {"invalid_ingredients": [], "invalid_appliances": []}
+
+        ing_set = {i for i in ingredients}
+        app_set = {a for a in appliances}
+        invalid_ing = [
+            str(x).strip() for x in data.get("invalid_ingredients", [])
+            if isinstance(x, (str, int, float)) and str(x).strip() in ing_set
+        ]
+        invalid_app = [
+            str(x).strip() for x in data.get("invalid_appliances", [])
+            if isinstance(x, (str, int, float)) and str(x).strip() in app_set
+        ]
+        return {
+            "invalid_ingredients": invalid_ing,
+            "invalid_appliances": invalid_app,
+        }
+
     IMAGE_QUERY_SYSTEM_PROMPT = (
         "你是一個翻譯助手，會收到中文台灣家常菜名與主要食材，"
         "請輸出每道菜對應的英文圖庫搜尋關鍵字（2-5 個字、全小寫、不含標點），"

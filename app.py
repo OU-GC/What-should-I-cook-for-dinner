@@ -238,33 +238,51 @@ def recommend():
         raw_results = result.get('recipes', [])
         formatted_recipes = _format_recipes(raw_results)
 
+        invalid_ingredients: list = []
+        invalid_appliances: list = []
+        skipped_expansion = False
+
         # The recommendation list must not be shorter than MIN_RESULTS.
         # Trigger LLM expansion whenever fewer recipes match the user's
         # ingredients — including the zero-match case.
         if len(raw_results) < MIN_RESULTS and not result.get("error") and ingredients:
-            all_added = _run_ingredient_expansion(ingredients)
-            if all_added:
-                # The freshly-generated recipes are tailored to the user's
-                # ingredients, so let them bypass the tolerance filter —
-                # otherwise they'd be hidden right after being created.
-                result = get_engine().get_recommendations(
-                    user, ingredients, always_include_names=all_added,
-                )
-                raw_results = result.get('recipes', [])
+            # Validate inputs before paying for any expansion call. If the user
+            # typed nonsense like "龍肉" or "哈哈哈", expansion would otherwise
+            # invent absurd recipes and waste two LLM calls per click.
+            try:
+                validation = recipe_generator.validate_inputs(ingredients, appliances)
+                invalid_ingredients = validation.get("invalid_ingredients", [])
+                invalid_appliances = validation.get("invalid_appliances", [])
+            except Exception:
+                invalid_ingredients = []
+                invalid_appliances = []
 
-            # Still short after the first expansion — expand once more, this
-            # time constraining generated recipes to the user's own appliances
-            # and ingredients so they survive the appliance filter.
-            if len(raw_results) < MIN_RESULTS:
-                retry_added = _run_ingredient_expansion(ingredients, appliances)
-                if retry_added:
-                    all_added.extend(retry_added)
+            if invalid_ingredients or invalid_appliances:
+                skipped_expansion = True
+            else:
+                all_added = _run_ingredient_expansion(ingredients)
+                if all_added:
+                    # The freshly-generated recipes are tailored to the user's
+                    # ingredients, so let them bypass the tolerance filter —
+                    # otherwise they'd be hidden right after being created.
                     result = get_engine().get_recommendations(
                         user, ingredients, always_include_names=all_added,
                     )
                     raw_results = result.get('recipes', [])
 
-            formatted_recipes = _format_recipes(raw_results)
+                # Still short after the first expansion — expand once more, this
+                # time constraining generated recipes to the user's own appliances
+                # and ingredients so they survive the appliance filter.
+                if len(raw_results) < MIN_RESULTS:
+                    retry_added = _run_ingredient_expansion(ingredients, appliances)
+                    if retry_added:
+                        all_added.extend(retry_added)
+                        result = get_engine().get_recommendations(
+                            user, ingredients, always_include_names=all_added,
+                        )
+                        raw_results = result.get('recipes', [])
+
+                formatted_recipes = _format_recipes(raw_results)
 
         # Backfill missing Unsplash images synchronously so the frontend never
         # renders a recommended recipe with an empty image slot when one could
@@ -278,7 +296,10 @@ def recommend():
         response = {
             "error": result.get("error"),
             "recipes": formatted_recipes,
-            "fallback": None
+            "fallback": None,
+            "invalid_ingredients": invalid_ingredients,
+            "invalid_appliances": invalid_appliances,
+            "expansion_skipped": skipped_expansion,
         }
         
         recommended_ids = [r['recipe_id'] for r in formatted_recipes]

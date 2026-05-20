@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const resultsSection = document.getElementById('results-section');
     const errorMsg = document.getElementById('error-message');
+    const invalidNotice = document.getElementById('invalid-notice');
     const gridEl = document.getElementById('recipes-grid');
     const fallbackContainer = document.getElementById('fallback-container');
     const fallbackTitle = document.getElementById('fallback-title');
@@ -188,6 +189,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function renderInvalidNotice(data) {
+        const invalidIng = Array.isArray(data.invalid_ingredients) ? data.invalid_ingredients : [];
+        const invalidApp = Array.isArray(data.invalid_appliances) ? data.invalid_appliances : [];
+        if (!invalidIng.length && !invalidApp.length) return;
+
+        const parts = [];
+        if (invalidIng.length) parts.push(`食材：${invalidIng.join('、')}`);
+        if (invalidApp.length) parts.push(`廚具：${invalidApp.join('、')}`);
+
+        const hint = data.expansion_skipped
+            ? '為避免生出不合理的菜譜，已略過 LLM 擴充。請修正後再試一次。'
+            : '以下輸入可能無法辨識，請確認是否拼寫正確。';
+
+        invalidNotice.innerHTML =
+            `<strong><i class="fa-solid fa-circle-exclamation"></i> 偵測到無法辨識的輸入</strong><br>` +
+            parts.join('；') +
+            `<span class="invalid-hint">${hint}</span>`;
+        invalidNotice.classList.remove('hidden');
+    }
+
     async function fetchRecommendations() {
         // Gathering checked appliances
         const checkboxes = document.querySelectorAll('input[name="appliance"]:checked');
@@ -197,6 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Hide old results
         resultsSection.classList.remove('hidden');
         errorMsg.classList.add('hidden');
+        invalidNotice.classList.add('hidden');
         fallbackContainer.classList.add('hidden');
         gridEl.innerHTML = `
             <div class="loading-wrapper">
@@ -217,6 +239,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
             gridEl.innerHTML = '';
+
+            renderInvalidNotice(data);
 
             if (data.error) {
                 errorMsg.textContent = data.error;
