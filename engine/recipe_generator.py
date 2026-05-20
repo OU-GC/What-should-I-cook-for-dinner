@@ -3,6 +3,17 @@ import os
 from typing import List, Dict, Any, Optional
 
 
+# 禁止 LLM 擴充任何「炒蛋」相關菜譜（使用者規則）。
+# 出現在所有擴充流程的系統提示詞與後置過濾中。
+FORBIDDEN_NAME_KEYWORDS = ("炒蛋",)
+
+
+def _is_forbidden_recipe_name(name: str) -> bool:
+    if not name:
+        return False
+    return any(kw in name for kw in FORBIDDEN_NAME_KEYWORDS)
+
+
 class RecipeGenerator:
     """
     Uses OpenAI GPT-4o-mini to generate recipes for a given appliance.
@@ -31,7 +42,8 @@ class RecipeGenerator:
         "3. steps 為條列式做法，每個步驟一句話。\n"
         "4. cook_time 為整數，單位為分鐘。\n"
         "5. 菜名請貼近台灣家庭用語。\n"
-        "6. image_query 為英文短詞，用於圖庫搜尋這道菜的成品照（例如 \"stir fried cabbage with egg\"），2-5 個字、全小寫、不含標點。"
+        "6. image_query 為英文短詞，用於圖庫搜尋這道菜的成品照（例如 \"stir fried cabbage with egg\"），2-5 個字、全小寫、不含標點。\n"
+        "7. 嚴禁產生任何「炒蛋」相關菜譜（含番茄炒蛋、蔥花炒蛋、韭菜炒蛋等任何菜名含「炒蛋」的料理）。"
     )
 
     def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4o-mini"):
@@ -70,7 +82,8 @@ class RecipeGenerator:
         "4. cook_time 為整數，單位為分鐘。\n"
         "5. 菜名請貼近台灣家庭用語。\n"
         "6. 新菜譜的菜名不可與使用者提供的既有菜名重複。\n"
-        "7. image_query 為英文短詞，用於圖庫搜尋這道菜的成品照（例如 \"stir fried cabbage with egg\"），2-5 個字、全小寫、不含標點。"
+        "7. image_query 為英文短詞，用於圖庫搜尋這道菜的成品照（例如 \"stir fried cabbage with egg\"），2-5 個字、全小寫、不含標點。\n"
+        "8. 嚴禁產生任何「炒蛋」相關菜譜（含番茄炒蛋、蔥花炒蛋、韭菜炒蛋等任何菜名含「炒蛋」的料理）。"
     )
 
     def generate_from_existing(
@@ -119,6 +132,8 @@ class RecipeGenerator:
                 continue
             name = str(raw.get("name", "")).strip()
             if not name or name.lower() in existing_lower:
+                continue
+            if _is_forbidden_recipe_name(name):
                 continue
             ingredients = [str(i).strip() for i in raw.get("ingredients", []) if str(i).strip()]
             appliances_list = [str(a).strip() for a in raw.get("required_appliances", []) if str(a).strip()]
@@ -277,7 +292,8 @@ class RecipeGenerator:
         "4. steps 為條列式做法，每個步驟一句話。\n"
         "5. cook_time 為整數，單位為分鐘。\n"
         "6. 菜名請貼近台灣家庭用語，且不可與使用者提供的既有菜名重複。\n"
-        "7. image_query 為英文短詞，用於圖庫搜尋這道菜的成品照（例如 \"stir fried cabbage with egg\"），2-5 個字、全小寫、不含標點。"
+        "7. image_query 為英文短詞，用於圖庫搜尋這道菜的成品照（例如 \"stir fried cabbage with egg\"），2-5 個字、全小寫、不含標點。\n"
+        "8. 嚴禁產生任何「炒蛋」相關菜譜（含番茄炒蛋、蔥花炒蛋、韭菜炒蛋等任何菜名含「炒蛋」的料理）。"
     )
 
     def generate_for_ingredients(
@@ -329,6 +345,8 @@ class RecipeGenerator:
             name = str(raw.get("name", "")).strip()
             if not name or name.lower() in existing_lower:
                 continue
+            if _is_forbidden_recipe_name(name):
+                continue
             ingredients_list = [str(i).strip() for i in raw.get("ingredients", []) if str(i).strip()]
             appliances_list = [str(a).strip() for a in raw.get("required_appliances", []) if str(a).strip()]
             steps = [str(s).strip() for s in raw.get("steps", []) if str(s).strip()]
@@ -376,6 +394,8 @@ class RecipeGenerator:
                 continue
             name = str(raw.get("name", "")).strip()
             if not name:
+                continue
+            if _is_forbidden_recipe_name(name):
                 continue
             ingredients = [str(i).strip() for i in raw.get("ingredients", []) if str(i).strip()]
             appliances_list = [str(a).strip() for a in raw.get("required_appliances", []) if str(a).strip()]
