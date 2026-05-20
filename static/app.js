@@ -211,9 +211,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchRecommendations() {
-        // Gathering checked appliances
-        const checkboxes = document.querySelectorAll('input[name="appliance"]:checked');
-        const appliances = Array.from(checkboxes).map(cb => cb.value);
+        // Auto-commit any pending text in the ingredient input so the user
+        // doesn't have to remember to press Enter/加入 before clicking search.
+        if (inputEl.value.trim()) {
+            addIngredient();
+        }
+
+        // Re-read every input fresh on each click so a second抽 picks up any
+        // changes the user made since the first — no page refresh required.
+        const currentIngredients = ingredients.slice();
+        const appliances = Array.from(
+            document.querySelectorAll('input[name="appliance"]:checked')
+        ).map(cb => cb.value);
         const tolerance = getTolerance();
 
         // Hide old results
@@ -232,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    ingredients: ingredients,
+                    ingredients: currentIngredients,
                     appliances: appliances,
                     missing_tolerance: tolerance
                 })
