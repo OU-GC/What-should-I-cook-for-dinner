@@ -9,73 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
         3: "3 樣以上：可接受較多彈性"
     };
 
-    // --- Favorites (localStorage) ---
-    const FAV_KEY = 'wsicfd:favorites';
-    let favStorageOk = true;
-
-    function loadFavorites() {
-        try {
-            const raw = localStorage.getItem(FAV_KEY);
-            if (!raw) return [];
-            const arr = JSON.parse(raw);
-            return Array.isArray(arr) ? arr : [];
-        } catch (e) {
-            favStorageOk = false;
-            return [];
-        }
-    }
-
-    function saveFavorites(list) {
-        try {
-            localStorage.setItem(FAV_KEY, JSON.stringify(list));
-            favStorageOk = true;
-        } catch (e) {
-            favStorageOk = false;
-        }
-    }
-
-    function favKeyOf(recipe) {
-        return recipe.recipe_id != null ? `id:${recipe.recipe_id}` : `name:${recipe.name}`;
-    }
-
-    function isFavorited(recipe) {
-        const key = favKeyOf(recipe);
-        return loadFavorites().some(f => f._key === key);
-    }
-
-    function toggleFavorite(recipe) {
-        const list = loadFavorites();
-        const key = favKeyOf(recipe);
-        const idx = list.findIndex(f => f._key === key);
-        if (idx >= 0) {
-            list.splice(idx, 1);
-        } else {
-            // Strip recommendation-context fields; keep only the reusable recipe body.
-            list.unshift({
-                _key: key,
-                _saved_at: new Date().toISOString(),
-                recipe_id: recipe.recipe_id,
-                name: recipe.name,
-                cook_time: recipe.cook_time,
-                steps: recipe.steps || [],
-                ingredients: recipe.ingredients || [],
-                required_appliances: recipe.required_appliances || [],
-                image_url: recipe.image_url,
-                image_credit: recipe.image_credit,
-            });
-        }
-        saveFavorites(list);
-        renderFavorites();
-        document.dispatchEvent(new CustomEvent('favorites-changed', { detail: { key } }));
-        return idx < 0;
-    }
-
-    function removeFavorite(key) {
-        const list = loadFavorites().filter(f => f._key !== key);
-        saveFavorites(list);
-        renderFavorites();
-    }
-
     // --- DOM Elements ---
     const inputEl = document.getElementById('ingredient-input');
     const addBtn = document.getElementById('add-ingredient-btn');
@@ -105,15 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalIngredients = document.getElementById('modal-ingredients');
     const modalSteps = document.getElementById('modal-steps');
     const modalImageCredit = document.getElementById('modal-image-credit');
-    const modalFavBtn = document.getElementById('modal-fav-btn');
     const modalDownloadBtn = document.getElementById('modal-download-btn');
-    const modalPrintBtn = document.getElementById('modal-print-btn');
-
-    // Favorites elements
-    const favoritesSection = document.getElementById('favorites-section');
-    const favoritesGrid = document.getElementById('favorites-grid');
-    const favoritesCount = document.getElementById('favorites-count');
-    const favoritesToggle = document.getElementById('favorites-toggle');
 
     // --- Events ---
     toleranceGroup.addEventListener('change', (e) => {
@@ -148,25 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Escape' && !modalOverlay.classList.contains('hidden')) closeModal();
     });
 
-    modalFavBtn.addEventListener('click', () => {
-        if (!currentModalRecipe) return;
-        toggleFavorite(currentModalRecipe);
-        updateModalFavButton(currentModalRecipe);
-    });
     modalDownloadBtn.addEventListener('click', () => {
-        if (currentModalRecipe) downloadRecipeMarkdown(currentModalRecipe);
-    });
-    modalPrintBtn.addEventListener('click', () => {
-        if (currentModalRecipe) printRecipe(currentModalRecipe);
-    });
-
-    favoritesToggle.addEventListener('click', () => {
-        const expanded = favoritesToggle.getAttribute('aria-expanded') === 'true';
-        favoritesToggle.setAttribute('aria-expanded', String(!expanded));
-        favoritesGrid.classList.toggle('collapsed', expanded);
-        favoritesToggle.querySelector('i').className = expanded
-            ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up';
-        favoritesToggle.querySelector('span').textContent = expanded ? '展開' : '收合';
+        if (currentModalRecipe) downloadRecipeSnapshot(currentModalRecipe);
     });
 
     // --- Modal ---
@@ -194,7 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
             modalImageCredit.innerHTML = '';
         }
 
-        updateModalFavButton(recipe);
         modalOverlay.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     }
@@ -205,36 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentModalRecipe = null;
     }
 
-    function updateModalFavButton(recipe) {
-        const fav = isFavorited(recipe);
-        modalFavBtn.classList.toggle('active', fav);
-        modalFavBtn.querySelector('i').className = fav
-            ? 'fa-solid fa-star' : 'fa-regular fa-star';
-        modalFavBtn.querySelector('span').textContent = fav ? '已收藏' : '收藏';
-        if (!favStorageOk) {
-            modalFavBtn.disabled = true;
-            modalFavBtn.title = '此瀏覽器無法使用本機儲存（可能為隱私模式），但仍可下載。';
-        }
-    }
-
-    // --- Favorites rendering ---
-    function renderFavorites() {
-        const list = loadFavorites();
-        favoritesCount.textContent = list.length;
-        if (!list.length) {
-            favoritesSection.classList.add('hidden');
-            favoritesGrid.innerHTML = '';
-            return;
-        }
-        favoritesSection.classList.remove('hidden');
-        favoritesGrid.innerHTML = '';
-        list.forEach((r, i) => {
-            const card = buildRecipeCard(r, i, { fromFavorites: true });
-            favoritesGrid.appendChild(card);
-        });
-    }
-
-    function buildRecipeCard(r, index, opts = {}) {
+    function buildRecipeCard(r, index) {
         const card = document.createElement('div');
         card.className = 'recipe-card';
         card.style.animationDelay = `${index * 0.08}s`;
@@ -250,17 +128,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ? `<span class="status-tag ${r.tag_class || ''}">${r.tag_text}</span>`
             : '';
 
-        const favOn = isFavorited(r);
-        const favBtnHtml = `
-            <button class="card-fav-btn ${favOn ? 'active' : ''}" type="button" aria-label="${favOn ? '取消收藏' : '收藏'}" title="${favOn ? '取消收藏' : '收藏'}">
-                <i class="${favOn ? 'fa-solid' : 'fa-regular'} fa-star"></i>
-            </button>`;
-
         card.innerHTML = `
-            <div class="recipe-img-wrap">
-                ${imageHtml}
-                ${favBtnHtml}
-            </div>
+            ${imageHtml}
             <div class="recipe-content">
                 ${statusTag}
                 <h3 class="recipe-title">${escapeHtml(r.name)}</h3>
@@ -279,24 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        const favBtn = card.querySelector('.card-fav-btn');
-        const refreshFavBtn = () => {
-            const nowFav = isFavorited(r);
-            favBtn.classList.toggle('active', nowFav);
-            favBtn.querySelector('i').className = nowFav ? 'fa-solid fa-star' : 'fa-regular fa-star';
-            favBtn.setAttribute('aria-label', nowFav ? '取消收藏' : '收藏');
-            favBtn.title = nowFav ? '取消收藏' : '收藏';
-        };
-        favBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleFavorite(r);
-            refreshFavBtn();
-        });
-        // Keep this card's star in sync when toggled elsewhere (e.g. modal).
-        document.addEventListener('favorites-changed', (ev) => {
-            if (ev.detail && ev.detail.key === favKeyOf(r)) refreshFavBtn();
-        });
-
         card.addEventListener('click', () => openModal(r));
         return card;
     }
@@ -310,84 +161,156 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/'/g, '&#39;');
     }
 
-    // --- Download / Print ---
-    function recipeToMarkdown(r) {
-        const lines = [];
-        lines.push(`# ${r.name}`);
-        lines.push('');
-        const metaBits = [];
-        if (r.cook_time) metaBits.push(`烹飪時間：${r.cook_time} 分鐘`);
-        const appliances = (r.required_appliances || []).filter(Boolean);
-        if (appliances.length) metaBits.push(`所需廚具：${appliances.join('、')}`);
-        if (metaBits.length) {
-            lines.push(metaBits.join('  \n'));
-            lines.push('');
-        }
-        lines.push('## 食材');
-        (r.ingredients || []).forEach(ing => lines.push(`- ${ing}`));
-        lines.push('');
-        lines.push('## 步驟');
-        (r.steps || []).forEach((step, i) => lines.push(`${i + 1}. ${step}`));
-        lines.push('');
-        lines.push('---');
-        lines.push(`由「今晚，煮點什麼？」匯出 · ${new Date().toLocaleString()}`);
-        return lines.join('\n');
-    }
-
+    // --- Snapshot download (PNG) ---
     function safeFilename(name) {
         // Strip characters not allowed on Windows / common filesystems.
         return String(name).replace(/[\\/:*?"<>|\x00-\x1F]/g, '_').trim() || 'recipe';
     }
 
-    function downloadRecipeMarkdown(r) {
-        const md = recipeToMarkdown(r);
-        const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${safeFilename(r.name)}.md`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-    }
-
-    function printRecipe(r) {
-        const win = window.open('', '_blank', 'noopener,noreferrer,width=800,height=900');
-        if (!win) {
-            // Popup blocked — fall back to printing the current modal.
-            window.print();
-            return;
+    async function downloadRecipeSnapshot(r) {
+        // Wait for webfonts so the rendered PNG uses the same typography as the page.
+        if (document.fonts && document.fonts.ready) {
+            try { await document.fonts.ready; } catch (e) { /* non-fatal */ }
         }
+
+        const W = 720;
+        const PAD = 56;
+        const contentW = W - PAD * 2;
+        const dpr = Math.max(2, window.devicePixelRatio || 1);
+        const fontFamily = '"Noto Serif TC", "PingFang TC", "Microsoft JhengHei", serif';
+
+        // Off-screen measurement context for line wrapping.
+        const measure = document.createElement('canvas').getContext('2d');
+
+        function wrap(text, font, maxWidth) {
+            measure.font = font;
+            // Char-by-char wrap so Chinese text breaks naturally.
+            const chars = Array.from(String(text));
+            const lines = [];
+            let line = '';
+            for (const ch of chars) {
+                const test = line + ch;
+                if (measure.measureText(test).width > maxWidth && line) {
+                    lines.push(line);
+                    line = ch;
+                } else {
+                    line = test;
+                }
+            }
+            if (line) lines.push(line);
+            return lines.length ? lines : [''];
+        }
+
+        // Build draw queue with y already resolved; do a single measure-and-layout pass.
+        const ops = [];
+        let y = PAD;
+
+        function addText(text, opts) {
+            const { font, color, x = PAD, lineHeight, maxWidth = contentW, gap = 0 } = opts;
+            const lines = wrap(text, font, maxWidth);
+            for (const line of lines) {
+                ops.push({ type: 'text', text: line, font, color, x, y });
+                y += lineHeight;
+            }
+            y += gap;
+        }
+
+        function addLine({ x1, x2, color, width = 1, gap = 0 }) {
+            ops.push({ type: 'line', x1, x2, y, color, width });
+            y += gap;
+        }
+
+        // === Title ===
+        addText(r.name, {
+            font: `600 30px ${fontFamily}`, color: '#2a2622', lineHeight: 42, gap: 10,
+        });
+        addLine({ x1: PAD, x2: PAD + 72, color: '#d97a3d', width: 3, gap: 26 });
+
+        // === Meta ===
         const appliances = (r.required_appliances || []).filter(Boolean);
-        const ingredientsHtml = (r.ingredients || [])
-            .map(ing => `<li>${escapeHtml(ing)}</li>`).join('');
-        const stepsHtml = (r.steps || [])
-            .map((s, i) => `<li><strong>${i + 1}.</strong> ${escapeHtml(s)}</li>`).join('');
-        win.document.write(`<!DOCTYPE html>
-<html lang="zh-TW"><head><meta charset="UTF-8"><title>${escapeHtml(r.name)}</title>
-<style>
-  body { font-family: 'Noto Serif TC', 'PingFang TC', serif; line-height: 1.8; color: #2a2622; max-width: 640px; margin: 2em auto; padding: 0 1.5em; }
-  h1 { border-bottom: 2px solid #d97a3d; padding-bottom: .4em; }
-  h2 { color: #8a4a1c; margin-top: 1.6em; }
-  .meta { color: #6b6359; font-size: .95em; margin-bottom: 1.4em; }
-  ul, ol { padding-left: 1.4em; }
-  li { margin: .5em 0; }
-  .footer { margin-top: 2.5em; font-size: .8em; color: #9a9081; border-top: 1px dashed #d9cfc1; padding-top: 1em; }
-</style></head><body>
-  <h1>${escapeHtml(r.name)}</h1>
-  <div class="meta">
-    ${r.cook_time ? `烹飪時間：${r.cook_time} 分鐘　` : ''}
-    ${appliances.length ? `所需廚具：${escapeHtml(appliances.join('、'))}` : ''}
-  </div>
-  <h2>食材</h2>
-  <ul>${ingredientsHtml}</ul>
-  <h2>步驟</h2>
-  <ol>${stepsHtml}</ol>
-  <div class="footer">由「今晚，煮點什麼？」匯出 · ${new Date().toLocaleString()}</div>
-  <script>window.onload = () => { window.print(); };</script>
-</body></html>`);
-        win.document.close();
+        const metaFont = `400 15px ${fontFamily}`;
+        if (r.cook_time) {
+            addText(`烹飪時間：${r.cook_time} 分鐘`,
+                { font: metaFont, color: '#6b6359', lineHeight: 24 });
+        }
+        if (appliances.length) {
+            addText(`所需廚具：${appliances.join('、')}`,
+                { font: metaFont, color: '#6b6359', lineHeight: 24 });
+        }
+        if (r.cook_time || appliances.length) y += 16;
+
+        // === Ingredients ===
+        addText('食材', {
+            font: `600 19px ${fontFamily}`, color: '#8a4a1c', lineHeight: 30, gap: 6,
+        });
+        (r.ingredients || []).forEach(ing => {
+            addText(`・${ing}`, {
+                font: `400 16px ${fontFamily}`, color: '#2a2622',
+                lineHeight: 26, x: PAD + 8, maxWidth: contentW - 8,
+            });
+        });
+        y += 18;
+
+        // === Steps ===
+        addText('步驟', {
+            font: `600 19px ${fontFamily}`, color: '#8a4a1c', lineHeight: 30, gap: 6,
+        });
+        (r.steps || []).forEach((step, i) => {
+            addText(`${i + 1}.  ${step}`, {
+                font: `400 16px ${fontFamily}`, color: '#2a2622',
+                lineHeight: 28, x: PAD + 8, maxWidth: contentW - 8, gap: 4,
+            });
+        });
+
+        y += 28;
+        addLine({ x1: PAD, x2: W - PAD, color: '#d9cfc1', width: 1, gap: 14 });
+        addText(`由「今晚，煮點什麼？」匯出 · ${new Date().toLocaleString()}`, {
+            font: `italic 12px ${fontFamily}`, color: '#9a9081', lineHeight: 18,
+        });
+
+        const H = y + PAD;
+
+        // === Render ===
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(W * dpr);
+        canvas.height = Math.round(H * dpr);
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+        ctx.textBaseline = 'top';
+
+        // Paper background to match site
+        ctx.fillStyle = '#fdfaf4';
+        ctx.fillRect(0, 0, W, H);
+        ctx.strokeStyle = '#d9cfc1';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(0.75, 0.75, W - 1.5, H - 1.5);
+
+        for (const op of ops) {
+            if (op.type === 'text') {
+                ctx.font = op.font;
+                ctx.fillStyle = op.color;
+                ctx.fillText(op.text, op.x, op.y);
+            } else if (op.type === 'line') {
+                ctx.strokeStyle = op.color;
+                ctx.lineWidth = op.width;
+                ctx.beginPath();
+                ctx.moveTo(op.x1, op.y);
+                ctx.lineTo(op.x2, op.y);
+                ctx.stroke();
+            }
+        }
+
+        canvas.toBlob((blob) => {
+            if (!blob) return;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${safeFilename(r.name)}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }, 'image/png');
     }
 
     // --- Functions ---
@@ -575,6 +498,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Initial load ---
-    renderFavorites();
 });
