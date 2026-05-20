@@ -244,8 +244,18 @@ document.addEventListener('DOMContentLoaded', () => {
             renderInvalidNotice(data);
 
             if (data.error) {
-                errorMsg.textContent = data.error;
-                errorMsg.classList.remove('hidden');
+                if (data.error === '請至少輸入一項食材') {
+                    fallbackTitle.textContent = data.error;
+                    fallbackSuggestions.innerHTML = [
+                        '在上方輸入框打上你手邊的食材，按 Enter 加入籃子',
+                        '例如：雞蛋、高麗菜、雞胸肉',
+                        '加入後再按「來抽今晚的菜單！」'
+                    ].map(s => `<li>${s}</li>`).join('');
+                    fallbackContainer.classList.remove('hidden');
+                } else {
+                    errorMsg.textContent = data.error;
+                    errorMsg.classList.remove('hidden');
+                }
                 return;
             }
 
