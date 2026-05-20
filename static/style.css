@@ -974,6 +974,7 @@ input[type="text"]:focus ~ .input-icon,
 }
 
 .spinner {
+    display: inline-block;
     font-size: 1.5rem;
     color: var(--orange);
     animation: spin 2s linear infinite;
