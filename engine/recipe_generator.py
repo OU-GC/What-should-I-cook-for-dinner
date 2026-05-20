@@ -204,8 +204,14 @@ class RecipeGenerator:
 
     IMAGE_QUERY_SYSTEM_PROMPT = (
         "你是一個翻譯助手，會收到中文台灣家常菜名與主要食材，"
-        "請輸出每道菜對應的英文圖庫搜尋關鍵字（2-5 個字、全小寫、不含標點），"
-        "用於 Unsplash 圖片搜尋這道菜的成品照。\n"
+        "請輸出每道菜對應的英文圖庫搜尋關鍵字，用於 Unsplash 搜尋成品照。\n"
+        "規則：\n"
+        "1. 關鍵字必須包含「主蛋白質 + 主蔬菜 + 烹調法」三要素（若菜中存在），缺一不可。\n"
+        "2. 4-7 個英文字、全小寫、不含標點。\n"
+        "3. 台灣特色食材請翻成國際通用名稱（例如：山茼蒿=crown daisy、皮蛋=century egg、空心菜=water spinach）。\n"
+        "範例：\n"
+        "  山茼蒿雞腿排 → pan fried chicken thigh crown daisy\n"
+        "  四季豆炒肉燥 → stir fried green beans minced pork\n"
         "請只輸出 JSON，格式為：{\"queries\": {\"中文菜名\": \"english keywords\", ...}}"
     )
 

@@ -125,22 +125,6 @@ class RecipeStorage:
             ))
             conn.commit()
 
-    def list_without_image(self) -> List[Dict[str, Any]]:
-        """Recipes that still need an image fetched (used by backfill)."""
-        with self._connect() as conn, conn.cursor() as cur:
-            cur.execute("""
-                SELECT recipe_id, name, ingredients
-                FROM recipes
-                WHERE image_url IS NULL
-                ORDER BY recipe_id
-            """)
-            rows = cur.fetchall()
-        return [{
-            'recipe_id': str(r[0]),
-            'name': r[1],
-            'ingredients': r[2] or [],
-        } for r in rows]
-
     def increment_rec_times(self, recipe_id: str) -> int:
         with self._connect() as conn, conn.cursor() as cur:
             cur.execute("""
