@@ -233,22 +233,14 @@ def recommend():
             appliances=appliances,
             missing_tolerance=missing_tolerance
         )
-        
-        result = get_engine().get_recommendations(user, ingredients)
-        raw_results = result.get('recipes', [])
-        formatted_recipes = _format_recipes(raw_results)
 
+        # Validate inputs up front so invalid 食材/廚具 are always surfaced to
+        # the user — not just when DB matches happen to fall below MIN_RESULTS.
+        # Doubles as the expansion gate: nonsense like "龍肉" still skips LLM
+        # expansion to avoid wasting calls on absurd recipes.
         invalid_ingredients: list = []
         invalid_appliances: list = []
-        skipped_expansion = False
-
-        # The recommendation list must not be shorter than MIN_RESULTS.
-        # Trigger LLM expansion whenever fewer recipes match the user's
-        # ingredients — including the zero-match case.
-        if len(raw_results) < MIN_RESULTS and not result.get("error") and ingredients:
-            # Validate inputs before paying for any expansion call. If the user
-            # typed nonsense like "龍肉" or "哈哈哈", expansion would otherwise
-            # invent absurd recipes and waste two LLM calls per click.
+        if ingredients or appliances:
             try:
                 validation = recipe_generator.validate_inputs(ingredients, appliances)
                 invalid_ingredients = validation.get("invalid_ingredients", [])
@@ -256,8 +248,19 @@ def recommend():
             except Exception:
                 invalid_ingredients = []
                 invalid_appliances = []
+        has_invalid = bool(invalid_ingredients or invalid_appliances)
 
-            if invalid_ingredients or invalid_appliances:
+        result = get_engine().get_recommendations(user, ingredients)
+        raw_results = result.get('recipes', [])
+        formatted_recipes = _format_recipes(raw_results)
+
+        skipped_expansion = False
+
+        # The recommendation list must not be shorter than MIN_RESULTS.
+        # Trigger LLM expansion whenever fewer recipes match the user's
+        # ingredients — including the zero-match case.
+        if len(raw_results) < MIN_RESULTS and not result.get("error") and ingredients:
+            if has_invalid:
                 skipped_expansion = True
             else:
                 all_added = _run_ingredient_expansion(ingredients)
