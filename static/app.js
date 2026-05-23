@@ -705,7 +705,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.addEventListener('hashchange', () => switchPage(getPage()));
-    switchPage(getPage());
 
     // Hamburger menu
     const hamburger = document.getElementById('nav-hamburger');
@@ -857,5 +856,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </section>
         `).join('');
     }
+
+    // 初次路由：放在最後，確保所有 const/let 已初始化（避免 TDZ）
+    switchPage(getPage());
 
 });
