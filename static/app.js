@@ -101,9 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     modalCloseBtn.addEventListener('click', closeModal);
-    modalOverlay.addEventListener('click', (e) => {
-        if (e.target === modalOverlay) closeModal();
-    });
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && !modalOverlay.classList.contains('hidden')) closeModal();
     });
@@ -140,9 +137,10 @@ document.addEventListener('DOMContentLoaded', () => {
         currentModalRecipe = recipe;
         modalName.textContent = recipe.name;
         const appliances = (recipe.required_appliances || []).filter(Boolean);
+        const applianceText = appliances.map(escapeHtml).join(', ') || '無需求';
         modalMeta.innerHTML = `
             <span><i class="fa-regular fa-clock"></i> ${recipe.cook_time ? recipe.cook_time + ' 分鐘' : '—'}</span>
-            <span><i class="fa-solid fa-kitchen-set"></i> ${appliances.join(', ') || '無需求'}</span>
+            <span><i class="fa-solid fa-kitchen-set"></i> ${applianceText}</span>
         `;
         modalIngredients.innerHTML = (recipe.ingredients || [])
             .map(ing => `<li>${ing}</li>`).join('');
@@ -206,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h3 class="recipe-title">${escapeHtml(r.name)}</h3>
                 <div class="recipe-meta">
                     <span><i class="fa-regular fa-clock"></i> ${r.cook_time ? r.cook_time + ' 分鐘' : '-'}</span>
-                    <span><i class="fa-solid fa-kitchen-set"></i> ${appliances.length ? appliances.join(', ') : '無需求'}</span>
+                    <span><i class="fa-solid fa-kitchen-set"></i> ${appliances.length ? appliances.map(escapeHtml).join(', ') : '無需求'}</span>
                 </div>
                 <div class="card-hint"><i class="fa-solid fa-hand-pointer"></i> 點擊查看做法</div>
             </div>
@@ -537,9 +535,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function addApplianceToggle(value, checked = true) {
         const label = document.createElement('label');
         label.className = 'toggle-btn';
+        const safe = escapeHtml(value);
         label.innerHTML = `
-            <input type="checkbox" name="appliance" value="${value}" ${checked ? 'checked' : ''}>
-            <span class="toggle-content">${value}</span>
+            <input type="checkbox" name="appliance" value="${safe}" ${checked ? 'checked' : ''}>
+            <span class="toggle-content">${safe}</span>
         `;
         applianceGroup.appendChild(label);
     }
@@ -590,14 +589,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (invalidIng.length) items.push(`食材：${invalidIng.join('、')}`);
         if (invalidApp.length) items.push(`廚具：${invalidApp.join('、')}`);
 
-        const hint = data.expansion_skipped
-            ? '食材或廚具不存在。請修正後再試一次。'
-            : '食材或廚具不存在。請修正後再試一次。';
+        const hint = '食材或廚具不存在。請修正後再試一次。';
 
         invalidNotice.innerHTML =
             `<div class="invalid-icon"><i class="fa-solid fa-circle-exclamation"></i></div>` +
             `<strong>偵測到無法辨識的輸入</strong>` +
-            `<ul>${items.map(item => `<li>${item}</li>`).join('')}</ul>` +
+            `<ul>${items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` +
             `<span class="invalid-hint">${hint}</span>`;
         invalidNotice.classList.remove('hidden');
     }
