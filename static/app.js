@@ -647,4 +647,176 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // =========================================================
+    // === SPA Routing =========================================
+    // =========================================================
+    const PAGES = ['home', 'cooking', 'storage'];
+
+    function switchPage(page) {
+        if (!PAGES.includes(page)) page = 'home';
+        PAGES.forEach(p => {
+            const el = document.getElementById('page-' + p);
+            if (el) el.classList.toggle('hidden', p !== page);
+        });
+        document.querySelectorAll('.topnav-link').forEach(a => {
+            a.classList.toggle('active', a.dataset.page === page);
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (page === 'cooking') buildCookingPage();
+        if (page === 'storage') buildStoragePage();
+    }
+
+    function getPage() {
+        const h = (location.hash || '#home').replace('#', '');
+        return PAGES.includes(h) ? h : 'home';
+    }
+
+    window.addEventListener('hashchange', () => switchPage(getPage()));
+    switchPage(getPage());
+
+    // Hamburger menu
+    const hamburger = document.getElementById('nav-hamburger');
+    const navLinks = document.querySelector('.topnav-links');
+    if (hamburger && navLinks) {
+        hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
+        document.querySelectorAll('.topnav-link').forEach(a =>
+            a.addEventListener('click', () => navLinks.classList.remove('open'))
+        );
+    }
+
+    // =========================================================
+    // === Cooking Skills Page Data & Builder ==================
+    // =========================================================
+    let cookingBuilt = false;
+    const COOKING_SKILLS = [
+        {
+            category: '🔪 基礎刀法',
+            items: [
+                { icon: '▦', name: '切丁', desc: '將食材先切成長條，再橫切成小方塊。小丁約 0.5cm、大丁約 1.5cm，常用於炒飯、沙拉、燉菜。', tip: '切洋蔥時先對半、根部不切斷，直切再橫切，眼淚少很多！' },
+                { icon: '〓', name: '切片', desc: '將食材垂直於纖維方向橫切成薄片，厚度視料理需求約 2–5mm。用於炒肉、火鍋、涼拌。', tip: '肉片逆紋切（垂直肌肉纖維），口感更嫩、不塞牙。' },
+                { icon: '≡', name: '切絲', desc: '先切成薄片，再順向切成細絲。寬度約 2–3mm。常用於炒菜絲、泡菜、涼拌。', tip: '片先疊起來再切絲，效率快三倍！' },
+                { icon: '·', name: '切末 / 剁碎', desc: '將食材切成極細的顆粒（<2mm）。蒜末、薑末、辣椒末都用這招，爆香效果最好。', tip: '刀身拍平大蒜後再剁，皮更好剝、也更容易剁細。' },
+                { icon: '↗', name: '滾刀切', desc: '每切一刀就把食材滾動 45–90°，切出不規則的大塊面。讓食材受熱面積更大、入味更快。', tip: '適合根莖類如馬鈴薯、紅蘿蔔、竹筍，燉煮不易散。' },
+                { icon: '/', name: '斜切', desc: '刀與砧板保持 45° 斜角切割。可增大切面、讓肉更嫩、讓蔥段更美觀。', tip: '切蔥段、蘆筍、青椒時斜切，賣相立刻升級！' },
+            ]
+        },
+        {
+            category: '🍳 常見烹飪術語',
+            items: [
+                { icon: '♨', name: '汆燙', desc: '將食材放入沸水中快速燙熟後撈起，用於去除腥味、定色或預熟。時間短，通常 30 秒至 2 分鐘。', tip: '燙葉菜加一點鹽和油，顏色更翠綠不變黃。' },
+                { icon: '🔥', name: '爆香', desc: '用大火快速煸炒蔥薑蒜辣椒等辛香料，逼出香氣再下其他食材。是中式料理的靈魂起手式。', tip: '油要夠熱（微微冒煙）再下蔥蒜，香氣才出得來。' },
+                { icon: '≈', name: '勾芡', desc: '將太白粉或玉米粉加水調勻，倒入鍋中收汁讓湯汁變濃稠，讓醬汁裹附在食材上。', tip: '勾芡水要邊攪邊倒、分次加，才不會結塊。' },
+                { icon: '↓', name: '收汁', desc: '開大火持續翻炒，讓鍋中水分蒸發、醬汁變得濃稠有光澤。讓味道更集中。', tip: '收汁時要不停翻炒，避免底部燒焦。' },
+                { icon: '∿', name: '悶煮', desc: '蓋上鍋蓋，用鍋內蒸氣與餘熱繼續把食材燜熟。節能又保留水分，適合雞肉、魚類。', tip: '電鍋外鍋放水，按下後就是標準悶煮——最省力！' },
+                { icon: '⊕', name: '過水 / 沖冷水', desc: '汆燙後立刻泡入冰水或沖冷水，快速降溫停止加熱，讓蔬菜保持脆感與鮮色。', tip: '沒有冰塊就用冷水多沖幾次，效果差不多。' },
+            ]
+        },
+        {
+            category: '🌡️ 火候控制',
+            items: [
+                { icon: '▲▲▲', name: '大火', desc: '火焰最大、鍋溫最高（約 250°C 以上）。適合爆炒、快炒、收汁。食材在鍋中時間極短，保留脆嫩口感。', tip: '大火快炒時食材要提前切好、醬料備好，動作要快。' },
+                { icon: '▲▲', name: '中火', desc: '火焰中等、鍋溫穩定（約 150–200°C）。適合煎、炒、煮湯。大多數料理的主力火候。', tip: '煎肉排時先中大火上色，再轉中小火煮熟，外脆內嫩。' },
+                { icon: '▲', name: '小火', desc: '火焰最小、溫度最低（約 80–120°C）。適合燉煮、熬湯、做醬料。讓食材慢慢入味。', tip: '燉湯時看到湯面微微冒泡就夠了，滾太大反而湯變混濁。' },
+            ]
+        }
+    ];
+
+    function buildCookingPage() {
+        if (cookingBuilt) return;
+        cookingBuilt = true;
+        const container = document.getElementById('cooking-content');
+        if (!container) return;
+        container.innerHTML = COOKING_SKILLS.map(cat => `
+            <section class="skills-category">
+                <h2 class="skills-category-title">${cat.category}</h2>
+                <div class="skills-grid">
+                    ${cat.items.map(s => `
+                        <div class="skill-card">
+                            <div class="skill-card-header">
+                                <div class="skill-icon">${s.icon}</div>
+                                <div class="skill-name">${s.name}</div>
+                            </div>
+                            <p class="skill-desc">${s.desc}</p>
+                            <div class="skill-tip">${s.tip}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
+        `).join('');
+    }
+
+    // =========================================================
+    // === Storage Page Data & Builder =========================
+    // =========================================================
+    let storageBuilt = false;
+    const STORAGE_DATA = [
+        {
+            category: '🥬 蔬菜類',
+            items: [
+                { emoji: '🥬', name: '高麗菜', days: '7–14 天', method: '整顆冷藏，外葉不要剝掉，用袋子鬆鬆套住保留濕度。', tips: '切開後切面包保鮮膜，儘量 3 天內用完。' },
+                { emoji: '🧅', name: '洋蔥', days: '1–2 個月', method: '放涼爽通風處，不需冷藏。避免與馬鈴薯放在一起。', tips: '切開後密封冷藏，2–3 天用完，切記勿再放室溫。' },
+                { emoji: '🥕', name: '紅蘿蔔', days: '2–4 週', method: '去葉後套入塑膠袋冷藏，保留濕度。', tips: '如有泥土覆蓋，先不要洗，洗了更快壞。' },
+                { emoji: '🍄', name: '新鮮香菇', days: '5–7 天', method: '用紙袋或廚房紙巾包裹冷藏，避免悶濕。', tips: '若太多吃不完，切片後冷凍，直接下鍋無需解凍。' },
+                { emoji: '🥦', name: '花椰菜', days: '5–7 天', method: '用濕紙巾包住花球部分，套袋冷藏。', tips: '先汆燙再冷凍可保存 1 個月，口感幾乎不變。' },
+                { emoji: '🍅', name: '番茄', days: '室溫 3–5 天', method: '未熟透放室溫，已熟放冰箱冷藏（4–5 天）。', tips: '蒂頭朝下擺放，減少水分流失，保鮮更久。' },
+                { emoji: '🥒', name: '小黃瓜', days: '3–5 天', method: '用紙巾包裹後放冷藏蔬果室，避免直接接觸冷氣出口。', tips: '低溫容易出現凍傷斑點，不要放在最冷的地方。' },
+                { emoji: '🌿', name: '蔥 / 香菜', days: '5–7 天', method: '根部用濕紙巾包住，裝入袋中直立冷藏。', tips: '洗淨切段後，放入密封袋冷凍，隨用隨取超方便。' },
+            ]
+        },
+        {
+            category: '🥩 肉類 & 海鮮',
+            items: [
+                { emoji: '🍗', name: '雞肉', days: '冷藏 2 天 / 冷凍 3 個月', method: '分裝成一次份量，冷藏 2 天內使用，否則立即冷凍。', tips: '冷凍前先分裝、壓平，解凍快又好拿。' },
+                { emoji: '🥩', name: '豬肉 / 牛肉', days: '冷藏 3–5 天 / 冷凍 3–4 個月', method: '原包裝冷藏或分裝冷凍，避免反覆解凍。', tips: '用鹽水浸泡法快速解凍：肉放密封袋，泡常溫鹽水 30 分鐘。' },
+                { emoji: '🦐', name: '鮮蝦', days: '冷藏 1–2 天 / 冷凍 3 個月', method: '買回後先去頭、去腸泥，瀝乾後冷凍效果最好。', tips: '冷凍時可用鹽水浸泡，能保持肉質彈性。' },
+                { emoji: '🐟', name: '鮮魚', days: '冷藏 1–2 天 / 冷凍 2 個月', method: '用廚房紙巾吸乾水分，密封後冷藏，最好隔日食用。', tips: '冷凍前先用米酒或薑片醃一下，去腥又保鮮。' },
+                { emoji: '🦪', name: '蛤蜊', days: '活體 1–2 天', method: '放入鹽水（3% 濃度）中吐沙，蓋上濕布放陰涼處或冷藏。', tips: '若短時間沒吃，吐沙後可放入密封袋冷凍，做湯時直接下鍋。' },
+                { emoji: '🥓', name: '培根 / 火腿', days: '開封後 7 天', method: '開封後緊密包裹或放密封袋冷藏，避免接觸空氣氧化。', tips: '吃不完可切段冷凍，料理炒飯、義大利麵直接用。' },
+            ]
+        },
+        {
+            category: '🥚 蛋 & 豆腐 & 乳製品',
+            items: [
+                { emoji: '🥚', name: '雞蛋', days: '冷藏 3–5 週', method: '尖端朝下放入冰箱，遠離異味食物（蛋殼有氣孔會吸味）。', tips: '測試新鮮度：放入水中，沉底橫躺最新鮮，豎立就快壞了。' },
+                { emoji: '🧈', name: '豆腐', days: '開封 2–3 天', method: '未開封照原包裝冷藏；開封後泡入清水，每日換水。', tips: '豆腐冷凍後口感變像海綿，超適合滷、燙火鍋、煮湯。' },
+                { emoji: '🧀', name: '起司', days: '開封 2–4 週', method: '用蠟紙或保鮮膜緊密包裹，避免接觸空氣，放冷藏。', tips: '如表面有少量白霉，可切除後仍可食用；若全體變色則丟棄。' },
+                { emoji: '🥛', name: '牛奶', days: '開封後 5–7 天', method: '開封後立刻冷藏，避免放在冰箱門（溫度不穩），放深層。', tips: '快過期的牛奶拿來做白醬或布丁，完全不浪費！' },
+            ]
+        },
+        {
+            category: '🧂 調味料 & 乾貨',
+            items: [
+                { emoji: '🍶', name: '醬油', days: '開封後 3–6 個月', method: '開封後冷藏保存，每次使用後確實蓋緊瓶蓋。', tips: '顏色加深、出現沉澱物通常仍可食用，但風味已打折。' },
+                { emoji: '🌾', name: '白米', days: '1–3 個月', method: '密封放於陰涼乾燥處，可放入幾片乾月桂葉防蟲。', tips: '用米桶或密封容器存放，放入冰箱冷藏可保存更久。' },
+                { emoji: '🌿', name: '乾香菇 / 木耳', days: '6–12 個月', method: '密封放於乾燥陰涼處，避免潮濕受潮。', tips: '泡發時用冷水或溫水，熱水會讓香菇香氣流失。' },
+                { emoji: '🫙', name: '味噌', days: '開封後 3 個月', method: '開封後密封冷藏，表面可貼一層保鮮膜隔絕空氣。', tips: '顏色變深是正常氧化，不代表變壞，但風味會轉苦。' },
+            ]
+        }
+    ];
+
+    function buildStoragePage() {
+        if (storageBuilt) return;
+        storageBuilt = true;
+        const container = document.getElementById('storage-content');
+        if (!container) return;
+        container.innerHTML = STORAGE_DATA.map(cat => `
+            <section class="storage-category">
+                <h2 class="skills-category-title">${cat.category}</h2>
+                <div class="storage-grid">
+                    ${cat.items.map(s => `
+                        <div class="storage-card">
+                            <div class="storage-card-header">
+                                <span class="storage-emoji">${s.emoji}</span>
+                                <span class="storage-name">${s.name}</span>
+                                <span class="storage-days">${s.days}</span>
+                            </div>
+                            <p class="storage-method">${s.method}</p>
+                            <p class="storage-tips">💡 ${s.tips}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
+        `).join('');
+    }
+
 });
