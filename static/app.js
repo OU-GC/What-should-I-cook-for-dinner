@@ -136,12 +136,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         modalOverlay.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
     }
 
     function closeModal() {
         modalOverlay.classList.add('hidden');
-        document.body.style.overflow = '';
         currentModalRecipe = null;
     }
 
