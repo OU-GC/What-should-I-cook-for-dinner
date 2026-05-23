@@ -1248,6 +1248,7 @@ input[type="text"]:focus ~ .input-icon,
     width: min(540px, 100%);
     max-height: 80vh;
     overflow-y: auto;
+    overscroll-behavior-y: auto;
     pointer-events: auto;
     box-shadow:
         0 8px 0 var(--line-soft),

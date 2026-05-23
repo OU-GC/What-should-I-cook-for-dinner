@@ -112,16 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentModalRecipe) downloadRecipeSnapshot(currentModalRecipe);
     });
 
-    // 觸頂/觸底時，把滾動轉發給主頁（scroll chaining）
-    modalCard.addEventListener('wheel', (e) => {
-        const atTop = modalCard.scrollTop <= 0;
-        const atBottom = modalCard.scrollTop + modalCard.clientHeight >= modalCard.scrollHeight - 1;
-        if ((atTop && e.deltaY < 0) || (atBottom && e.deltaY > 0)) {
-            e.preventDefault();
-            window.scrollBy({ top: e.deltaY, behavior: 'auto' });
-        }
-    }, { passive: false });
-
     // --- Modal ---
     function openModal(recipe, sourceCard) {
         currentModalRecipe = recipe;
@@ -423,11 +413,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             acList.appendChild(li);
         });
-
-        const hint = document.createElement('div');
-        hint.className = 'autocomplete-hint';
-        hint.textContent = '↑↓ 選擇  Enter 加入  Esc 關閉';
-        acList.appendChild(hint);
     }
 
     function setActiveIndex(idx) {
