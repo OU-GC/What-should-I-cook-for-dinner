@@ -112,6 +112,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentModalRecipe) downloadRecipeSnapshot(currentModalRecipe);
     });
 
+    // 觸頂/觸底時，把滾動轉發給主頁（scroll chaining）
+    modalCard.addEventListener('wheel', (e) => {
+        const atTop = modalCard.scrollTop <= 0;
+        const atBottom = modalCard.scrollTop + modalCard.clientHeight >= modalCard.scrollHeight - 1;
+        if ((atTop && e.deltaY < 0) || (atBottom && e.deltaY > 0)) {
+            e.preventDefault();
+            window.scrollBy({ top: e.deltaY, behavior: 'auto' });
+        }
+    }, { passive: false });
+
     // --- Modal ---
     function openModal(recipe, sourceCard) {
         currentModalRecipe = recipe;

@@ -1178,6 +1178,14 @@ input[type="text"]:focus ~ .input-icon,
     position: relative;
 }
 
+.input-section {
+    z-index: 10;
+}
+
+.settings-section {
+    z-index: 1;
+}
+
 /* Animations */
 .hidden { display: none !important; }
 
