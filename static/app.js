@@ -112,6 +112,29 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentModalRecipe) downloadRecipeSnapshot(currentModalRecipe);
     });
 
+    // 觸頂/觸底時，把滾動轉發給主頁，用 rAF + 動量做平滑效果
+    let scrollVelocity = 0;
+    let scrollRafId = null;
+    function stepScroll() {
+        if (Math.abs(scrollVelocity) < 0.4) {
+            scrollVelocity = 0;
+            scrollRafId = null;
+            return;
+        }
+        window.scrollBy(0, scrollVelocity);
+        scrollVelocity *= 0.82; // 摩擦係數，越小衰減越快
+        scrollRafId = requestAnimationFrame(stepScroll);
+    }
+    modalCard.addEventListener('wheel', (e) => {
+        const atTop = modalCard.scrollTop <= 0;
+        const atBottom = modalCard.scrollTop + modalCard.clientHeight >= modalCard.scrollHeight - 1;
+        if ((atTop && e.deltaY < 0) || (atBottom && e.deltaY > 0)) {
+            e.preventDefault();
+            scrollVelocity += e.deltaY * 0.25; // 衝量
+            if (!scrollRafId) scrollRafId = requestAnimationFrame(stepScroll);
+        }
+    }, { passive: false });
+
     // --- Modal ---
     function openModal(recipe, sourceCard) {
         currentModalRecipe = recipe;
@@ -736,18 +759,21 @@ document.addEventListener('DOMContentLoaded', () => {
         cookingBuilt = true;
         const container = document.getElementById('cooking-content');
         if (!container) return;
-        container.innerHTML = COOKING_SKILLS.map(cat => `
-            <section class="skills-category">
-                <h2 class="skills-category-title">${cat.category}</h2>
-                <div class="skills-grid">
+        container.innerHTML = COOKING_SKILLS.map((cat, idx) => `
+            <section class="glass-panel">
+                <h2>
+                    <span class="step-badge">${String(idx + 1).padStart(2, '0')}</span>
+                    ${cat.category}
+                </h2>
+                <div class="tutorial-grid">
                     ${cat.items.map(s => `
-                        <div class="skill-card">
-                            <div class="skill-card-header">
-                                <div class="skill-icon">${s.icon}</div>
-                                <div class="skill-name">${s.name}</div>
+                        <div class="tutorial-card">
+                            <div class="tutorial-card-header">
+                                <div class="tutorial-icon">${s.icon}</div>
+                                <div class="tutorial-name">${s.name}</div>
                             </div>
-                            <p class="skill-desc">${s.desc}</p>
-                            <div class="skill-tip">${s.tip}</div>
+                            <p class="tutorial-desc">${s.desc}</p>
+                            <div class="tutorial-tip">${s.tip}</div>
                         </div>
                     `).join('')}
                 </div>
@@ -809,19 +835,22 @@ document.addEventListener('DOMContentLoaded', () => {
         storageBuilt = true;
         const container = document.getElementById('storage-content');
         if (!container) return;
-        container.innerHTML = STORAGE_DATA.map(cat => `
-            <section class="storage-category">
-                <h2 class="skills-category-title">${cat.category}</h2>
-                <div class="storage-grid">
+        container.innerHTML = STORAGE_DATA.map((cat, idx) => `
+            <section class="glass-panel">
+                <h2>
+                    <span class="step-badge">${String(idx + 1).padStart(2, '0')}</span>
+                    ${cat.category}
+                </h2>
+                <div class="tutorial-grid">
                     ${cat.items.map(s => `
-                        <div class="storage-card">
-                            <div class="storage-card-header">
-                                <span class="storage-emoji">${s.emoji}</span>
-                                <span class="storage-name">${s.name}</span>
-                                <span class="storage-days">${s.days}</span>
+                        <div class="tutorial-card">
+                            <div class="tutorial-card-header">
+                                <div class="tutorial-icon">${s.emoji}</div>
+                                <div class="tutorial-name">${s.name}</div>
+                                <span class="tutorial-badge">${s.days}</span>
                             </div>
-                            <p class="storage-method">${s.method}</p>
-                            <p class="storage-tips">💡 ${s.tips}</p>
+                            <p class="tutorial-desc">${s.method}</p>
+                            <div class="tutorial-tip">${s.tips}</div>
                         </div>
                     `).join('')}
                 </div>
