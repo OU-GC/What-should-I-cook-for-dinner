@@ -65,6 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Modal elements
     const modalOverlay = document.getElementById('recipe-modal');
+    const modalCard = modalOverlay.querySelector('.modal-card');
+    const appContainer = document.querySelector('.app-container');
     const modalCloseBtn = document.getElementById('modal-close-btn');
     const modalName = document.getElementById('modal-recipe-name');
     const modalMeta = document.getElementById('modal-recipe-meta');
@@ -111,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Modal ---
-    function openModal(recipe) {
+    function openModal(recipe, sourceCard) {
         currentModalRecipe = recipe;
         modalName.textContent = recipe.name;
         const appliances = (recipe.required_appliances || []).filter(Boolean);
@@ -136,6 +138,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         modalOverlay.classList.remove('hidden');
+        positionModalAt(sourceCard);
+    }
+
+    function positionModalAt(sourceCard) {
+        if (!sourceCard || !appContainer) return;
+        const cardRect = sourceCard.getBoundingClientRect();
+        const containerRect = appContainer.getBoundingClientRect();
+        const top = cardRect.top - containerRect.top;
+        const modalWidth = modalCard.offsetWidth;
+        const maxLeft = Math.max(0, containerRect.width - modalWidth);
+        let left = cardRect.left - containerRect.left;
+        if (left > maxLeft) left = maxLeft;
+        if (left < 0) left = 0;
+        modalCard.style.top = `${top}px`;
+        modalCard.style.left = `${left}px`;
     }
 
     function closeModal() {
@@ -179,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        card.addEventListener('click', () => openModal(r));
+        card.addEventListener('click', () => openModal(r, card));
         return card;
     }
 

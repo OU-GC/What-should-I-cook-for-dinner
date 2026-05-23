@@ -1226,25 +1226,18 @@ input[type="text"]:focus ~ .input-icon,
 
 /* --- Recipe Detail Modal --- */
 .modal-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    background: transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    pointer-events: none;
-    animation: modalFadeIn 0.3s ease forwards;
+    display: contents;
 }
 
 .modal-card {
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1000;
     background: var(--bg-paper);
     border: 1.5px solid var(--line);
     border-radius: 22px;
-    max-width: 540px;
-    width: 100%;
+    width: min(540px, 100%);
     max-height: 80vh;
     overflow-y: auto;
     pointer-events: auto;
@@ -1455,7 +1448,6 @@ input[type="text"]:focus ~ .input-icon,
     .app-container { padding: 3rem 1.2rem 4rem; }
     .hero h1 { font-size: 2.2rem; }
     .glass-panel { padding: 1.8rem 1.4rem; }
-    .modal-overlay { padding: 1rem; }
     .modal-card { max-height: 85vh; border-radius: 18px; }
     .modal-header { padding: 1.5rem 1.5rem 1rem; }
     .modal-body { padding: 1.2rem 1.5rem 1.5rem; }
