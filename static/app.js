@@ -9,6 +9,39 @@ document.addEventListener('DOMContentLoaded', () => {
         3: "3 樣以上：可接受較多彈性"
     };
 
+    // --- 常見食材清單 (autocomplete source) ---
+    const COMMON_INGREDIENTS = [
+        // 蛋奶豆腐
+        '雞蛋', '皮蛋', '豆腐', '嫩豆腐', '板豆腐', '凍豆腐', '豆干', '豆皮', '油豆腐', '納豆', '牛奶', '起司', '奶油',
+        // 肉類
+        '雞胸肉', '雞腿肉', '雞翅', '雞腿', '豬絞肉', '豬五花', '豬排', '豬里肌', '豬肉', '牛絞肉', '牛肉', '牛腱',
+        '羊肉', '培根', '火腿', '香腸', '臘腸', '豬血糕',
+        // 海鮮
+        '蝦', '蝦仁', '花枝', '透抽', '魷魚', '鮭魚', '鯛魚', '吳郭魚', '虱目魚', '秋刀魚', '鯖魚', '蛤蜊', '牡蠣',
+        '文蛤', '螃蟹', '干貝', '魚板', '魚丸', '蟹肉棒',
+        // 葉菜類
+        '高麗菜', '白菜', '小白菜', '菠菜', '地瓜葉', '空心菜', '莧菜', '韭菜', '青江菜', '芥藍', '油菜',
+        '花椰菜', '綠花椰菜', '白花椰菜', '萵苣', '生菜', '芹菜',
+        // 根莖類
+        '馬鈴薯', '番薯', '地瓜', '芋頭', '蓮藕', '牛蒡', '白蘿蔔', '紅蘿蔔', '山藥',
+        // 菇類
+        '香菇', '金針菇', '杏鮑菇', '鴻禧菇', '舞菇', '木耳', '猴頭菇',
+        // 瓜果類
+        '番茄', '小番茄', '茄子', '苦瓜', '絲瓜', '冬瓜', '南瓜', '玉米', '玉米筍', '青椒', '紅椒', '彩椒',
+        '小黃瓜', '大黃瓜', '秋葵',
+        // 蔥薑蒜
+        '蔥', '薑', '大蒜', '洋蔥', '紅蔥頭', '辣椒',
+        // 豆類
+        '毛豆', '四季豆', '長豆', '豌豆', '紅豆', '綠豆', '黑豆',
+        // 主食
+        '米飯', '白飯', '麵條', '烏龍麵', '拉麵', '米粉', '冬粉', '寬粉', '麵線', '義大利麵', '吐司', '饅頭',
+        // 調味料
+        '醬油', '鹽', '糖', '白醋', '烏醋', '米酒', '味噌', '豆瓣醬', '辣豆瓣醬', '番茄醬', '蠔油', '魚露',
+        '麻油', '芝麻油', '沙拉油', '橄欖油', '花椒', '八角',
+        // 其他常見食材
+        '泡菜', '豆芽菜', '綠豆芽', '黃豆芽', '花生', '腰果', '芝麻', '海帶', '昆布', '柴魚'
+    ];
+
     // --- DOM Elements ---
     const inputEl = document.getElementById('ingredient-input');
     const addBtn = document.getElementById('add-ingredient-btn');
@@ -53,9 +86,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return checked ? parseInt(checked.value, 10) : 1;
     }
 
-    addBtn.addEventListener('click', addIngredient);
-    inputEl.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addIngredient();
+    addBtn.addEventListener('click', () => {
+        closeAutocomplete();
+        addIngredient();
     });
 
     searchBtn.addEventListener('click', fetchRecommendations);
@@ -313,6 +346,121 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 'image/png');
     }
 
+    // --- Autocomplete ---
+    let acIndex = -1; // keyboard-highlighted index
+
+    // Build and mount the dropdown DOM node once
+    const acList = document.createElement('ul');
+    acList.className = 'autocomplete-list';
+    acList.setAttribute('role', 'listbox');
+    acList.id = 'ingredient-autocomplete';
+    inputEl.closest('.input-wrapper').appendChild(acList);
+
+    inputEl.setAttribute('autocomplete', 'off');
+    inputEl.setAttribute('aria-autocomplete', 'list');
+    inputEl.setAttribute('aria-controls', 'ingredient-autocomplete');
+
+    function getMatches(query) {
+        if (!query) return [];
+        const q = query.toLowerCase();
+        return COMMON_INGREDIENTS.filter(item =>
+            item.toLowerCase().includes(q) && !ingredients.includes(item)
+        ).slice(0, 8);
+    }
+
+    function highlightMatch(text, query) {
+        const idx = text.toLowerCase().indexOf(query.toLowerCase());
+        if (idx === -1) return escapeHtml(text);
+        return escapeHtml(text.slice(0, idx)) +
+            `<span class="ac-match">${escapeHtml(text.slice(idx, idx + query.length))}</span>` +
+            escapeHtml(text.slice(idx + query.length));
+    }
+
+    function renderAutocomplete(matches, query) {
+        acList.innerHTML = '';
+        acIndex = -1;
+        if (!matches.length) return;
+
+        matches.forEach((item, i) => {
+            const li = document.createElement('li');
+            li.className = 'autocomplete-item';
+            li.setAttribute('role', 'option');
+            li.setAttribute('data-value', item);
+            li.innerHTML = highlightMatch(item, query);
+
+            li.addEventListener('mousedown', (e) => {
+                // Use mousedown so it fires before input blur
+                e.preventDefault();
+                selectItem(item);
+            });
+            li.addEventListener('mousemove', () => {
+                setActiveIndex(i);
+            });
+            acList.appendChild(li);
+        });
+
+        const hint = document.createElement('div');
+        hint.className = 'autocomplete-hint';
+        hint.textContent = '↑↓ 選擇  Enter 加入  Esc 關閉';
+        acList.appendChild(hint);
+    }
+
+    function setActiveIndex(idx) {
+        const items = acList.querySelectorAll('.autocomplete-item');
+        items.forEach((el, i) => el.classList.toggle('active', i === idx));
+        acIndex = idx;
+        if (items[idx]) {
+            items[idx].scrollIntoView({ block: 'nearest' });
+        }
+    }
+
+    function selectItem(value) {
+        inputEl.value = value;
+        closeAutocomplete();
+        addIngredient();
+    }
+
+    function closeAutocomplete() {
+        acList.innerHTML = '';
+        acIndex = -1;
+    }
+
+    inputEl.addEventListener('input', () => {
+        const q = inputEl.value.trim();
+        const matches = getMatches(q);
+        renderAutocomplete(matches, q);
+    });
+
+    inputEl.addEventListener('keydown', (e) => {
+        const items = acList.querySelectorAll('.autocomplete-item');
+        const hasDropdown = items.length > 0;
+
+        if (e.key === 'ArrowDown') {
+            if (!hasDropdown) return;
+            e.preventDefault();
+            setActiveIndex((acIndex + 1) % items.length);
+        } else if (e.key === 'ArrowUp') {
+            if (!hasDropdown) return;
+            e.preventDefault();
+            setActiveIndex(acIndex <= 0 ? items.length - 1 : acIndex - 1);
+        } else if (e.key === 'Enter') {
+            if (hasDropdown && acIndex >= 0 && items[acIndex]) {
+                e.preventDefault();
+                selectItem(items[acIndex].dataset.value);
+            } else {
+                closeAutocomplete();
+                addIngredient();
+            }
+        } else if (e.key === 'Escape') {
+            closeAutocomplete();
+        }
+    });
+
+    inputEl.addEventListener('blur', () => {
+        // Small delay so mousedown on a list item fires first
+        setTimeout(closeAutocomplete, 150);
+    });
+
     // --- Functions ---
     function addIngredient() {
         const val = inputEl.value.trim();
@@ -321,6 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderTags();
         }
         inputEl.value = '';
+        closeAutocomplete();
     }
 
     function removeIngredient(index) {
