@@ -215,6 +215,29 @@ def _record_recommendations(recipe_ids: list) -> None:
 def index():
     return render_template('index.html')
 
+@app.route('/api/config/staples', methods=['GET'])
+def get_staples():
+    raw = config.get('standard_condiments', [])
+    # Deduplicate & clean for user-facing display.
+    # Merge synonyms and drop overly generic items.
+    SKIP = {'水', '油'}
+    MERGE = {
+        '鹽巴': '鹽',
+        '白砂糖': '糖',
+        '胡椒粉': '胡椒',
+        '黑胡椒': '胡椒',
+    }
+    seen = set()
+    display = []
+    for item in raw:
+        if item in SKIP:
+            continue
+        canonical = MERGE.get(item, item)
+        if canonical not in seen:
+            seen.add(canonical)
+            display.append(canonical)
+    return jsonify({"staples": display})
+
 @app.route('/recommend', methods=['POST'])
 def recommend():
     try:

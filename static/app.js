@@ -861,6 +861,38 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
+    // =========================================================
+    // === Staples Hint Panel ===================================
+    // =========================================================
+    const staplesToggle = document.getElementById('staples-toggle');
+    const staplesContent = document.getElementById('staples-content');
+    const staplesTags = document.getElementById('staples-tags');
+
+    if (staplesToggle && staplesContent) {
+        staplesToggle.addEventListener('click', () => {
+            const expanded = staplesToggle.getAttribute('aria-expanded') === 'true';
+            staplesToggle.setAttribute('aria-expanded', String(!expanded));
+            staplesContent.classList.toggle('open');
+        });
+    }
+
+    async function fetchStaples() {
+        try {
+            const res = await fetch('/api/config/staples');
+            const data = await res.json();
+            const staples = data.staples || [];
+            if (!staples.length || !staplesTags) return;
+            staplesTags.innerHTML = staples.map(s =>
+                `<span class="staple-tag"><i class="fa-solid fa-check"></i>${escapeHtml(s)}</span>`
+            ).join('');
+        } catch (e) {
+            // Non-fatal: panel stays empty / hidden
+            console.warn('Failed to load staples:', e);
+        }
+    }
+
+    fetchStaples();
+
     // 初次路由：放在最後，確保所有 const/let 已初始化（避免 TDZ）
     switchPage(getPage());
 

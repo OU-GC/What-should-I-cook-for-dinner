@@ -131,6 +131,20 @@
                     <button id="add-ingredient-btn" class="btn primary"><i class="fa-solid fa-plus"></i> 加入</button>
                 </div>
                 <div id="ingredient-tags" class="tags-container"></div>
+
+                <div class="staples-hint" id="staples-hint">
+                    <button class="staples-toggle" id="staples-toggle" type="button" aria-expanded="false" aria-controls="staples-content">
+                        <span class="staples-toggle-icon"><i class="fa-regular fa-lightbulb"></i></span>
+                        <span class="staples-toggle-text">查看本服務預設的常備調味料</span>
+                        <i class="fa-solid fa-chevron-down staples-chevron"></i>
+                    </button>
+                    <div class="staples-content" id="staples-content">
+                        <p class="staples-desc">以下調味料為本服務的常備品，推薦食譜時<strong>不會列入缺料計算</strong>，系統假設你的廚房已備有這些品項：</p>
+                        <div class="staples-tags" id="staples-tags">
+                            <!-- dynamically populated by JS -->
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <section class="settings-section glass-panel">
