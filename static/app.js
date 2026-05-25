@@ -58,6 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultsSection = document.getElementById('results-section');
     const errorMsg = document.getElementById('error-message');
     const invalidNotice = document.getElementById('invalid-notice');
+    const fridgeMessageEl = document.getElementById('fridge-message');
+    const fridgeMessageTextEl = document.getElementById('fridge-message-text');
     const gridEl = document.getElementById('recipes-grid');
     const fallbackContainer = document.getElementById('fallback-container');
     const fallbackTitle = document.getElementById('fallback-title');
@@ -619,6 +621,8 @@ document.addEventListener('DOMContentLoaded', () => {
         errorMsg.classList.add('hidden');
         invalidNotice.classList.add('hidden');
         fallbackContainer.classList.add('hidden');
+        fridgeMessageEl.classList.add('hidden');
+        fridgeMessageTextEl.textContent = '';
         gridEl.innerHTML = `
             <div class="loading-wrapper">
                 <div class="spinner"><i class="fa-solid fa-fan"></i></div>
@@ -668,6 +672,11 @@ document.addEventListener('DOMContentLoaded', () => {
             data.recipes.forEach((r, i) => {
                 gridEl.appendChild(buildRecipeCard(r, i));
             });
+
+            if (data.fridge_message) {
+                fridgeMessageTextEl.textContent = data.fridge_message;
+                fridgeMessageEl.classList.remove('hidden');
+            }
 
         } catch (err) {
             console.error(err);

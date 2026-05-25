@@ -319,6 +319,16 @@ def recommend():
         except Exception:
             pass
 
+        fridge_message = None
+        if formatted_recipes:
+            try:
+                fridge_message = recipe_generator.generate_fridge_message(
+                    ingredients,
+                    [r['name'] for r in formatted_recipes],
+                )
+            except Exception:
+                fridge_message = None
+
         response = {
             "error": result.get("error"),
             "recipes": formatted_recipes,
@@ -326,6 +336,7 @@ def recommend():
             "invalid_ingredients": invalid_ingredients,
             "invalid_appliances": invalid_appliances,
             "expansion_skipped": skipped_expansion,
+            "fridge_message": fridge_message,
         }
         
         recommended_ids = [r['recipe_id'] for r in formatted_recipes]

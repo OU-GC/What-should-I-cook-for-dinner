@@ -234,6 +234,26 @@
                 <div id="error-message" class="error-msg glass-panel hidden"></div>
                 <div id="invalid-notice" class="invalid-notice glass-panel hidden"></div>
 
+                <div id="fridge-message" class="fridge-message glass-panel hidden" aria-live="polite">
+                    <div class="fridge-message-avatar" aria-hidden="true">
+                        <svg viewBox="0 0 64 64" width="48" height="48">
+                            <rect x="10" y="6" width="44" height="52" rx="6" fill="#fffbef" stroke="#2a2622" stroke-width="2.5"/>
+                            <line x1="10" y1="26" x2="54" y2="26" stroke="#2a2622" stroke-width="2"/>
+                            <rect x="46" y="12" width="3" height="8" rx="1.5" fill="#2a2622"/>
+                            <rect x="46" y="32" width="3" height="14" rx="1.5" fill="#2a2622"/>
+                            <circle cx="24" cy="38" r="2.2" fill="#2a2622"/>
+                            <circle cx="36" cy="38" r="2.2" fill="#2a2622"/>
+                            <path d="M24 46 Q30 50 36 46" stroke="#2a2622" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                            <circle cx="20" cy="42" r="1.6" fill="#f4b8a0" opacity="0.6"/>
+                            <circle cx="40" cy="42" r="1.6" fill="#f4b8a0" opacity="0.6"/>
+                        </svg>
+                    </div>
+                    <div class="fridge-message-bubble">
+                        <span class="fridge-message-label">冰箱悄悄話</span>
+                        <p id="fridge-message-text"></p>
+                    </div>
+                </div>
+
                 <div id="fallback-container" class="fallback-card glass-panel hidden">
                     <div class="fallback-icon"><i class="fa-regular fa-face-frown-open"></i></div>
                     <h3 id="fallback-title"></h3>

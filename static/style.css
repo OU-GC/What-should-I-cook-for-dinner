@@ -986,6 +986,45 @@ input[type="text"]:focus ~ .input-icon,
     color: var(--accent);
 }
 
+/* Fridge talking-bubble */
+.fridge-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.1rem 1.3rem;
+    margin-bottom: 1.4rem;
+    border: 1px dashed var(--line);
+    background: var(--bg-paper);
+}
+
+.fridge-message-avatar {
+    flex: 0 0 auto;
+    line-height: 0;
+}
+
+.fridge-message-bubble {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.fridge-message-label {
+    display: inline-block;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    margin-bottom: 0.35rem;
+    font-weight: 500;
+}
+
+.fridge-message-bubble p {
+    margin: 0;
+    color: var(--ink);
+    line-height: 1.65;
+    font-size: 1rem;
+    font-style: italic;
+    letter-spacing: 0.02em;
+}
+
 /* Recipe Grid */
 .recipes-grid {
     display: grid;

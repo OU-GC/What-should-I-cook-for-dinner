@@ -366,6 +366,70 @@ class RecipeGenerator:
             existing_lower.add(name.lower())
         return cleaned
 
+    FRIDGE_MESSAGE_SYSTEM_PROMPT = (
+        "你是一台會說話的冰箱，個性溫柔又帶點幽默，會像朋友一樣關心剛下班、累壞的主人。"
+        "使用者會告訴你他冰箱裡的食材，以及系統剛剛推薦了哪幾道菜。"
+        "請你用「冰箱」的第一人稱，對主人說一段 1-2 句、約 30-60 字的話。\n"
+        "規則：\n"
+        "1. 語氣要溫柔安撫，同時帶一點俏皮、幽默或自嘲（例如吐槽自己冷、抱怨被塞太滿、催促主人快用掉某個食材）。\n"
+        "2. 自然提到 1-2 樣使用者的食材或其中一道推薦菜名，讓主人覺得你真的有看到他的冰箱。\n"
+        "3. 不要列點、不要說「你好」「歡迎」這類客套開場、不要鼓勵叫外送。\n"
+        "4. 不要包山包海推銷功能，就只是冰箱想對主人說的一句貼心話。\n"
+        "請只輸出 JSON：{\"message\": \"...\"}"
+    )
+
+    def generate_fridge_message(
+        self,
+        ingredients: List[str],
+        recipe_names: List[str],
+    ) -> Optional[str]:
+        """Generate a short in-character message from the (talking) fridge.
+
+        Returns the message string, or None if the LLM call fails / no inputs.
+        Always best-effort: callers should treat this as optional UI sugar.
+        """
+        ingredients = [str(i).strip() for i in (ingredients or []) if str(i).strip()]
+        recipe_names = [str(n).strip() for n in (recipe_names or []) if str(n).strip()]
+        if not ingredients and not recipe_names:
+            return None
+
+        try:
+            client = self._client()
+        except RuntimeError:
+            return None
+
+        user_prompt = (
+            f"冰箱裡的食材：{json.dumps(ingredients, ensure_ascii=False)}\n"
+            f"系統剛推薦的菜：{json.dumps(recipe_names, ensure_ascii=False)}\n"
+            "請你用冰箱的口吻，對主人說一段話。"
+        )
+
+        try:
+            response = client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": self.FRIDGE_MESSAGE_SYSTEM_PROMPT},
+                    {"role": "user", "content": user_prompt},
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.9,
+            )
+        except Exception:
+            return None
+
+        content = response.choices[0].message.content or "{}"
+        try:
+            data = json.loads(content)
+        except (TypeError, ValueError):
+            return None
+        if not isinstance(data, dict):
+            return None
+        message = data.get("message")
+        if not isinstance(message, str):
+            return None
+        message = message.strip()
+        return message or None
+
     def generate_for_appliance(self, appliance: str, count: int = 3) -> List[Dict[str, Any]]:
         appliance = (appliance or "").strip()
         if not appliance:
