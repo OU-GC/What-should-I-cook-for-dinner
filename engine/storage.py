@@ -31,6 +31,10 @@ class RecipeStorage:
                     required_appliances JSONB NOT NULL,
                     steps               JSONB,
                     cook_time           INTEGER,
+                    rec_times           INTEGER NOT NULL DEFAULT 0,
+                    image_url           TEXT,
+                    image_credit        JSONB,
+                    image_query         TEXT,
                     created_at          TIMESTAMPTZ DEFAULT NOW()
                 )
             """)
@@ -79,30 +83,6 @@ class RecipeStorage:
             conn.commit()
         return str(new_id)
 
-    def add_with_id(self, recipe: Dict[str, Any]) -> str:
-        with self._connect() as conn, conn.cursor() as cur:
-            cur.execute("""
-                INSERT INTO recipes
-                    (recipe_id, name, ingredients, required_appliances,
-                     steps, cook_time, image_url, image_credit, image_query)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (recipe_id) DO NOTHING
-                RETURNING recipe_id
-            """, (
-                int(recipe['recipe_id']),
-                recipe['name'],
-                Jsonb(recipe.get('ingredients', [])),
-                Jsonb(recipe.get('required_appliances', [])),
-                Jsonb(recipe.get('steps', [])),
-                recipe.get('cook_time'),
-                recipe.get('image_url'),
-                Jsonb(recipe['image_credit']) if recipe.get('image_credit') else None,
-                recipe.get('image_query'),
-            ))
-            row = cur.fetchone()
-            conn.commit()
-        return str(row[0]) if row else ''
-
     def update_image(
         self,
         recipe_id: str,
@@ -145,13 +125,3 @@ class RecipeStorage:
             )
             conn.commit()
 
-    def reset_sequence(self) -> None:
-        with self._connect() as conn, conn.cursor() as cur:
-            cur.execute("""
-                SELECT setval(
-                    pg_get_serial_sequence('recipes', 'recipe_id'),
-                    COALESCE((SELECT MAX(recipe_id) FROM recipes), 1),
-                    true
-                )
-            """)
-            conn.commit()
