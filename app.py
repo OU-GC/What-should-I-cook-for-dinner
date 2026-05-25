@@ -364,31 +364,13 @@ def recommend():
 
 @app.route('/appliance/add', methods=['POST'])
 def add_appliance():
+    # Appliance sanity-checking happens later in /recommend's validate_inputs
+    # batch, alongside ingredient validation — cheaper than a per-add LLM call.
     try:
         data = request.json or {}
         appliance = str(data.get('appliance', '')).strip()
         if not appliance:
-            return jsonify({"error": "請提供廚具名稱", "added": 0}), 400
-
-        # Default appliances are known-good; skip the LLM validation call.
-        if appliance in DEFAULT_APPLIANCES:
-            return jsonify({"appliance": appliance})
-
-        # Sanity-check the appliance name so nonsense like "馬桶" / "時光機"
-        # never enters the user's appliance list. Recipe generation now happens
-        # later via the ingredient-expansion flow on /recommend, which combines
-        # ingredients + appliances — so we no longer generate here.
-        try:
-            validation = recipe_generator.validate_inputs([], [appliance])
-            invalid_apps = validation.get("invalid_appliances", [])
-        except Exception:
-            invalid_apps = []
-        if invalid_apps:
-            return jsonify({
-                "error": f"「{appliance}」不像是合理的廚具，請確認拼寫。",
-                "invalid_appliance": appliance,
-            }), 400
-
+            return jsonify({"error": "請提供廚具名稱"}), 400
         return jsonify({"appliance": appliance})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
