@@ -157,7 +157,7 @@ class RecipeGenerator:
     VALIDATE_SYSTEM_PROMPT = (
         "你是一個輸入驗證助手。使用者會提供兩組詞彙：食材清單與廚具清單。"
         "請判斷每個詞是否為真實、合理的家庭料理食材或廚具，將不合理的項目挑出。"
-        "不合理包含：非真實食材（例：龍肉、彩虹粉）、非真實廚具（例：時光機）、"
+        "不合理包含：非真實食材（例：龍肉、彩虹粉）、非真實廚具（例：時光機、洗手台）、"
         "無意義字串或亂碼（例：哈哈哈、asdf）、純標點符號等。"
         "判斷時請寬鬆對待常見的台灣家庭食材／廚具用詞，包含口語、簡稱、地方稱呼。"
         "請只輸出 JSON，格式為："
@@ -429,54 +429,3 @@ class RecipeGenerator:
             return None
         message = message.strip()
         return message or None
-
-    def generate_for_appliance(self, appliance: str, count: int = 3) -> List[Dict[str, Any]]:
-        appliance = (appliance or "").strip()
-        if not appliance:
-            return []
-
-        client = self._client()
-        user_prompt = f"請為「{appliance}」這項廚具，生成 {count} 道適合的家常菜譜。"
-
-        response = client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": self.SYSTEM_PROMPT},
-                {"role": "user", "content": user_prompt},
-            ],
-            response_format={"type": "json_object"},
-            temperature=0.8,
-        )
-
-        content = response.choices[0].message.content or "{}"
-        data = json.loads(content)
-        raw_recipes = data.get("recipes", []) if isinstance(data, dict) else []
-
-        cleaned: List[Dict[str, Any]] = []
-        for raw in raw_recipes:
-            if not isinstance(raw, dict):
-                continue
-            name = str(raw.get("name", "")).strip()
-            if not name:
-                continue
-            if _is_forbidden_recipe_name(name):
-                continue
-            ingredients = [str(i).strip() for i in raw.get("ingredients", []) if str(i).strip()]
-            appliances_list = [str(a).strip() for a in raw.get("required_appliances", []) if str(a).strip()]
-            if appliance not in appliances_list:
-                appliances_list.append(appliance)
-            steps = [str(s).strip() for s in raw.get("steps", []) if str(s).strip()]
-            try:
-                cook_time = int(raw.get("cook_time")) if raw.get("cook_time") is not None else None
-            except (TypeError, ValueError):
-                cook_time = None
-            image_query = str(raw.get("image_query", "")).strip().lower() or None
-            cleaned.append({
-                "name": name,
-                "ingredients": ingredients,
-                "required_appliances": appliances_list,
-                "steps": steps,
-                "cook_time": cook_time,
-                "image_query": image_query,
-            })
-        return cleaned
