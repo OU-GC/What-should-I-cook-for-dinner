@@ -163,7 +163,6 @@ document.addEventListener('DOMContentLoaded', () => {
             modalImageCredit.innerHTML = '';
         }
 
-        modalCard.style.display = '';
         modalOverlay.classList.remove('hidden');
         positionModalAt(sourceCard);
     }
@@ -184,7 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function closeModal() {
         modalOverlay.classList.add('hidden');
-        modalCard.style.display = 'none';
         currentModalRecipe = null;
     }
 
