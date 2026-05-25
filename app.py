@@ -370,28 +370,14 @@ def add_appliance():
         if not appliance:
             return jsonify({"error": "請提供廚具名稱", "added": 0}), 400
 
-        # Skip generation if the appliance is part of the default set.
+        # Default appliances are known-good; skip the LLM validation call.
         if appliance in DEFAULT_APPLIANCES:
-            return jsonify({
-                "appliance": appliance,
-                "added": 0,
-                "skipped": True,
-            })
+            return jsonify({"appliance": appliance})
 
-        # Avoid duplicate generation if recipes already exist for this appliance.
-        existing = [
-            r for r in storage.list_all()
-            if appliance in (r.get('required_appliances') or [])
-        ]
-        if existing:
-            return jsonify({
-                "appliance": appliance,
-                "added": 0,
-                "skipped": True,
-            })
-
-        # Gate LLM generation behind a sanity check — nonsense like "時光機"
-        # would otherwise waste a generation call and pollute the recipe DB.
+        # Sanity-check the appliance name so nonsense like "馬桶" / "時光機"
+        # never enters the user's appliance list. Recipe generation now happens
+        # later via the ingredient-expansion flow on /recommend, which combines
+        # ingredients + appliances — so we no longer generate here.
         try:
             validation = recipe_generator.validate_inputs([], [appliance])
             invalid_apps = validation.get("invalid_appliances", [])
@@ -400,36 +386,12 @@ def add_appliance():
         if invalid_apps:
             return jsonify({
                 "error": f"「{appliance}」不像是合理的廚具，請確認拼寫。",
-                "added": 0,
                 "invalid_appliance": appliance,
             }), 400
 
-        try:
-            generated = recipe_generator.generate_for_appliance(appliance, count=3)
-        except RuntimeError as e:
-            return jsonify({"error": str(e), "added": 0}), 500
-        except Exception as e:
-            return jsonify({"error": f"產生菜譜時發生錯誤：{e}", "added": 0}), 500
-
-        added_names = []
-        for recipe in generated:
-            try:
-                storage.add(_attach_image(recipe))
-                added_names.append(recipe['name'])
-            except Exception:
-                # If a unique-name conflict or other DB error happens, skip silently.
-                continue
-
-        if added_names:
-            invalidate_engine_cache()
-
-        return jsonify({
-            "appliance": appliance,
-            "added": len(added_names),
-            "recipes": added_names,
-        })
+        return jsonify({"appliance": appliance})
     except Exception as e:
-        return jsonify({"error": str(e), "added": 0}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/recipes/expand', methods=['POST'])
 def expand_recipes():
