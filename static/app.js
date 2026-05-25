@@ -95,7 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
         addIngredient();
     });
 
-    searchBtn.addEventListener('click', fetchRecommendations);
+    searchBtn.addEventListener('click', () => {
+        closeModal();
+        fetchRecommendations();
+    });
 
     addApplianceBtn.addEventListener('click', addCustomAppliance);
     customApplianceInput.addEventListener('keypress', (e) => {
@@ -619,7 +622,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const tolerance = getTolerance();
 
         // Hide old results
-        closeModal();
         resultsSection.classList.remove('hidden');
         errorMsg.classList.add('hidden');
         invalidNotice.classList.add('hidden');
