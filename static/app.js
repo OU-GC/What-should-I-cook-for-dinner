@@ -617,6 +617,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tolerance = getTolerance();
 
         // Hide old results
+        closeModal();
         resultsSection.classList.remove('hidden');
         errorMsg.classList.add('hidden');
         invalidNotice.classList.add('hidden');
