@@ -85,6 +85,13 @@ Runs on http://localhost:5002 by default.
 > `POST /recipes/expand` to generate a first batch via the LLM, or import your own
 > with `RecipeStorage().add(...)`.
 
+## Deployment
+
+The app is configured for Vercel (`api/index.py`, see `vercel.json`). To keep
+running costs down, the hosted service is currently not open to the public —
+**running locally (see [Getting Started](#getting-started)) is the primary way
+to use it.**
+
 ## API
 
 | Method | Path | Description |
