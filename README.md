@@ -48,7 +48,7 @@ engine/
 data/config.json        Staple condiment list and synonym dictionary
 templates/ static/      Frontend pages and assets
 tests/test_engine.py    Recommendation engine unit tests
-PRD_v1.md               Product requirements document
+PRD.md               Product requirements document
 ```
 
 ## Environment Variables
