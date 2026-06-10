@@ -6,9 +6,6 @@ and the appliances you own — no more "looks great but can't make it" recipes.
 When the database doesn't have enough matching dishes, it uses an LLM to generate
 new recipes tailored to your ingredients on the fly.
 
-Full product requirements and the gap between spec and implementation are in
-[PRD_v1.md](PRD_v1.md) (see "Appendix B: Implementation Gap Summary" at the end).
-
 ## Features
 
 - **Ingredient input & normalization**: handles synonyms, full-/half-width, and
