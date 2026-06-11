@@ -79,9 +79,8 @@ python -c "from engine.storage import RecipeStorage; RecipeStorage().init_schema
 python app.py
 ```
 
-> Note: recipes are stored in PostgreSQL. The database starts empty — call
-> `POST /recipes/expand` to generate a first batch via the LLM, or import your own
-> with `RecipeStorage().add(...)`.
+Recipes are stored in PostgreSQL and generated on demand by the LLM. You can
+also add entries to the database manually.
 
 ## Deployment
 
