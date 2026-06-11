@@ -79,18 +79,13 @@ python -c "from engine.storage import RecipeStorage; RecipeStorage().init_schema
 python app.py
 ```
 
-Runs on http://localhost:5002 by default.
-
 > Note: recipes are stored in PostgreSQL. The database starts empty — call
 > `POST /recipes/expand` to generate a first batch via the LLM, or import your own
 > with `RecipeStorage().add(...)`.
 
 ## Deployment
 
-The app is configured for Vercel (`api/index.py`, see `vercel.json`). To keep
-running costs down, the hosted service is currently not open to the public —
-**running locally (see [Getting Started](#getting-started)) is the primary way
-to use it.**
+Deployed on Vercel — try it at [what-should-i-cook-for-dinner.vercel.app](https://what-should-i-cook-for-dinner.vercel.app/).
 
 ## API
 
